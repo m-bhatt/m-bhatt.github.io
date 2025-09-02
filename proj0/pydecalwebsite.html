@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proj0 CS280A</title>
+  <style>
+
+	body {
+      display: flex;
+      justify-content: center;   /* center horizontally */
+      align-items: center;       /* center vertically */
+      font-family: Avenir, sans-serif;
+    }
+
+
+	.frame {
+      background: lavender;
+      border-radius: 20px;       /* rounded corners */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* soft shadow */
+	  justify-content: center;
+      padding: 30px;
+      max-width: 75%;        /*  not full page
+      width: 90%;                /* responsive */
+    }
+
+    .gallery {
+      display: flex;
+      justify-content: center;
+      gap: 20px;          /* space between images */
+      flex-wrap: wrap;    /* allows stacking if screen is too narrow */
+    }
+    figure {
+      text-align: center;
+      max-width: 400px;   /* control image size */
+      margin: 0;
+    }
+    figure img {
+      width: 100%;        /* make image fit within max-width */
+      height: auto;
+      border-radius: 8px;
+      display: block;
+    }
+    figcaption {
+      margin-top: 8px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+<div class="frame">
+<h1 style="text-align:center;">Project 0: Becoming Friends with Your Camera</h1>
+
+<h2 style="text-align:center;""> Part 1: Selfie: The Wrong Way vs. The Right Way </h3>
+  <div class="gallery">
+    <figure>
+      <img src="images/dog2_1.jpeg" alt="First image">
+      <figcaption>My dog's furry face, taken very close to her. The camera is focused on her nose, and her whole snout appears prominent and bulbous. Her face seems narrow and sloped. </figcaption>
+    </figure>
+    <figure>
+      <img src="images/dog2_2.jpeg" alt="Second image">
+      <figcaption>My dog's furry face (slightly sleepier), taken further away and zoomed in. Her snout appears wedge-like and truer to life. She sat still under the promise of snacky things.</figcaption>
+    </figure>
+  </div>
+
+<h2 style="text-align:center;">Part 2: Architectural Perspective Compression </h3>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/perspective_2.jpeg" alt="First image">
+      <figcaption>De Anza College, taken from a distance and zoomed in. </figcaption>
+    </figure>
+	<figure>
+		<img src="images/persepctive_1.jpeg" alt="First image">
+		<figcaption>De Anza College, taken closer without zoom. The far tower appears much further away. </figcaption>
+	  </figure>
+  </div>
+
+<h2 style="text-align:center;">Part 3: The Dolly Zoom</h3>  
+
+  <div class="gallery">
+    <figure>
+      <img src="images/churchdolly.gif" alt="First image">
+      <figcaption>Dolly zoom at a church, at night. Focused on the light source and the pillar reflecting the light. Gif is comprised of 16 still images. </figcaption>
+    </figure>
+  </div>
+</div>
+</body>
+</html>
