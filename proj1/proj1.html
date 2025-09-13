@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proj1 CS280A</title>
+  <!-- The loading of KaTeX is deferred to speed up page rendering -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js"></script>
+  <!-- To automatically render math in text elements -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css">
+
+  <style>
+
+	body {
+      display: flex;
+      justify-content: center;   /* center horizontally */
+      align-items: center;       /* center vertically */
+      font-family: Avenir, sans-serif;
+    }
+
+
+	.frame {
+      background: lavender;
+      border-radius: 20px;       /* rounded corners */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* soft shadow */
+	    justify-content: center;
+      padding: 30px;
+      max-width: 90%;        /*  not full page
+      width: 90%;                /* responsive */
+    }
+
+    .gallery {
+      display: flex;
+      justify-content: center;
+      gap: 20px;          /* space between images */
+      flex-wrap: wrap;    /* allows stacking if screen is too narrow */
+    }
+    figure {
+      text-align: center;
+      max-width: 400px;   /* control image size */
+      margin: 0;
+      display: flex;
+      margin-top: 10pxl;
+      flex-direction: column;
+      align-items: center; 
+    }
+    figure img {
+      height: 300px;        /* make image fit within max-width */
+      width: auto;
+      border-radius: 0px;
+      display: block;
+      /* object-fit: contain;   */
+    }
+    figcaption {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: 100%;           /* ensures it spans full figure width */
+    }
+
+    .arrow {
+      font-size: 2rem;
+      display: flex; 
+      color: #666;
+      user-select: none;
+      align-items: center;       /* vertical center */
+      justify-content: center;   /* horizontal center */
+      flex-shrink: 0;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="frame">
+
+  
+<h1 style="text-align:center;">Project 1:  Colorizing the Prokudin-Gorskii Photo Collection </h1>
+
+<p > Sergei Mikhailovich Prokudin-Gorskii (1863-1944) travelled across the Russian Empire, taking photographs of a wide range of subjects: people, buildings, landscapes, animals. 
+Although there was no method at the time for printing color photographs, Prokudin-Gorskii captured three exposures of each scene onto a glass plate, using a red, green, and blue filter. 
+The result of each photograph looks like this, with the images in B, G, R order from top to bottom. 
+
+<div class="gallery">
+  <figure>
+    <img src="images/camel.jpg" alt="First image" style="width:100">
+    <figcaption> "Camel" </figcaption>
+  </figure>
+</div>
+<br>
+His RGB negatives were purchased in 1948 by the Library of Congress, who digitized and colorized the images, combining the three filtered images into single color photographs.
+The full collection can be found <a href="https://www.loc.gov/collections/prokudin-gorskii/?st=list">here</a>. 
+<br> <br>
+Because Prokudin-Gorskii took three separate exposures, although each filtered image is about the same size, the subjects within are not necessarily lined up.
+If we assume a completely naïve approach and align each filtered image at (0,0), the colorized image would appear blurry as the color channels are offset. 
+<br><br>The goal of this project was to colorize the images ourselves, aligning the red, green, and blue filtered images based on pixel intensities or edges, and to apply a few auto-edits to the colorized images.
+</p>
+
+<h2 style="text-align:center;"> Scoring Metrics and Methodology </h2>
+  <p style="text-align:center;"> There are two simple metrics to determine similarity between two matrices. 
+    <ol>
+      <li>The simplest is L2 Norm, or Euclidean distance, which measures the distance between the images:
+        \(\sqrt{\sum_{i}\sum_{j} \left( \text{image1}_{i,j} - \text{image2}_{i,j} \right)^{2}}\). 
+      </li>
+        <li>The second is Normalized Cross Correlation (NCC). 
+          NCC is the dot product between the two normalized vectors, measuring their similarity: \(\frac{\text{image1}}{\lVert \text{image1} \rVert} \cdot \frac{\text{image2}}{\lVert \text{image2} \rVert}\).
+          I found NCC to be more robust than calculating the L2 norm over the raw pixels, so all of the images presented until Part 3 will be aligned using NCC.
+        </li>
+    </ol>
+    A more complicated method of aligning images is via their edges. In Part 3, I use Sobel Edge Detection. This algorithm proceeds as follows.
+    <ol>
+      <li>I blur the image via a Gaussian kernel. I used cv2.GaussianBlur. This smoothes the image and reduces noise, as noise interferes with the detected edges.</li>
+      <li>I then apply a Sobel kernel over the image, horizontally and vertically. The Sobel kernel is a version of the derivative of a Gaussian kernel, allowing us to effectively determine the partial derivatives in the horizontal and vertical directions. 
+        By calculating the rates of change, we can identify edges, which are located where the values change sharply.</li>
+      <li>I calculate the magnitude of the gradient over the image. Stronger edges are accompanied by a larger gradient magnitude. The final result of this process is a black and white image comprising only the identified edges.
+      </li>
+    </ol>
+
+    
+  </p>
+
+    <h3 style="text-align:center;"> Processing </h3>
+    <p style="text-align:center;"> There were two primary processing steps I took to improve NCC's alignments. 
+      <ol>
+        <li>I use np.roll to shift the image matrices. Np.roll shifts and wraps values, which throws off the NCC calculation.
+          To address this, I used np.roll to shift the image, then cropped off the wrapped rows. 
+          For example, if I was aligning the R image to the B image, I might shift R by 5 pixels left and 0 vertically. In this case, I would crop off the last 5 columns of R and B to keep them the same size.
+          This greatly improved the alignments.
+        </li>
+        <li>The filtered images have thick, intense borders. These were also influencing the NCC calculation, so before calculating the best image shifts I crop off a pre-determined border (5% from each edge).
+          After the optimal alignment is found, I add back the 5% on each side so that I am able to return the full image. See Part 3 for smarter cropping methods post-alignment.
+        </li>
+      </ol>
+    </p>
+
+
+  <!-- <p>Math can be inline like \(2^{2x}=4\), or displayed like:</p> -->
+
+
+<h2 style="text-align:center;"> Part 1: Single-Scale Implementation </h3>
+  <p style="text-align:center;"> The simplest approach to match the filtered images is to search exhaustively over a pre-defined window, such as -15 to +15 pixels horizontally and vertically.
+  This first section implements this exhaustive search over (-15, 15) pixels for three small-size jpgs. 
+ </p>
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_singlescale_ncc_cathedral.jpg" alt="First image">
+      <figcaption> "Cathedral" <br> RB:  (12, 3) GB:  (5, 2) </figcaption>
+    </figure>
+    <figure>
+      <img src="images/aligned_singlescale_ncc_monastery.jpg" alt="Second image">
+      <figcaption>"Monastery" <br> RB:  (3, 2) GB:  (-3, 2) </figcaption>
+    </figure>
+    <figure>
+      <img src="images/aligned_singlescale_ncc_tobolsk.jpg" alt="First image">
+      <figcaption>"Tobolsk" <br> RB:  (6, 3) GB:  (3, 3) </figcaption>
+    </figure>
+  </div>
+
+<h2 style="text-align:center;">Part 2: Multi-Scale Image Pyramids </h3>
+  <p style="text-align:center;""> An image pyramid provides a convenient structure to speed up the alignment process. </p>
+  <p>
+    The exhaustive search over a pre-determined window becomes prohibitively expensive in larger images, as we need to 
+    search over both a larger window to cover a sufficient percentage of the image, and we need to adjust our alignments over much larger matrices.
+    To build an image pyramid, I resize the image recursively using cv2.resize, using a scale factor of 1/2. Once I reach the coarsest resolution image supported, I perform an exhaustive
+    search as in the single-scale case. 
+    <br><br>
+    Once I determine the best alignment value for the coarsest resolution, I move up to the next higher resolution image.
+    I scale the alignment value up by multiplying the horizontal and vertical components by 2, to account for the higher resolution image having 2x the rows and 2x the columns as the scaled down image, and search a finer pixel window around that alignment. 
+    I continue this process until I reach the original image, at which I search only -2 to +2 pixels on either side of the determined alignment value.
+    The best alignment value found from -2 to +2 on the original image is then returned as the final determined alignment.
+
+    Using the pyramid, we only need to run an exhaustive search on a low resolution image, through which we find the alignment's rough location. 
+    On each subsequent pyramid layer, the exhaustive search is much slower, but since we know the rough location already, we save ourselves a lot of computation by only checking a few pixels on either side.
+  </p>
+  <p style="text-align:center;"">14 images from the collection, aligned using the image pyramid. </p>
+
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_ncc_cathedral.jpg" alt="First image">
+      <figcaption>"Cathedral" <br> RB: (12, 3), GB: (5, 2) </figcaption>
+    </figure>
+  <figure>
+      <img src="images/aligned_ncc_monastery.jpg" alt="First image">
+      <figcaption>"Monastery" <br> RB: (3, 2), GB: (-3, 2) </figcaption>
+    </figure>
+    <figure>
+      <img src="images/aligned_ncc_tobolsk.jpg" alt="First image">
+      <figcaption>"Tobolsk" <br> RB: (6, 3), GB: (3, 3) </figcaption>
+    </figure>
+  </div>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_ncc_church.png" alt="First image">
+      <figcaption>"Church" <br> RB: (58, -4), GB: (25, 0)  </figcaption>
+    </figure>
+  <figure>
+      <img src="images/aligned_ncc_harvesters.png" alt="First image">
+      <figcaption>"Harvesters" <br>  RB: (124, 13), GB: (60, 16)  </figcaption>
+    </figure>
+    <figure>
+      <img src="images/aligned_ncc_icon.png" alt="First image">
+      <figcaption>"Icon" <br> RB: (89, 23), GB: (40, 17)  </figcaption>
+    </figure>
+  </div>
+
+  <div class="gallery">
+    
+	<figure>
+		<img src="images/aligned_ncc_italil.png" alt="First image">
+		<figcaption>"Italil" <br> RB: (77, 35), GB: (38, 21)  </figcaption>
+	  </figure>
+  <figure>
+      <img src="images/aligned_ncc_lastochikino.png" alt="First image">
+      <figcaption>"Lastochikino" <br>  RB: (76, -8), GB: (-3, -1)  </figcaption>
+    </figure>
+    <figure>
+      <img src="images/aligned_ncc_lugano.png" alt="First image">
+      <figcaption>"Lugano" <br> RB: (92, -28), GB: (41, -16)  </figcaption>
+    </figure>
+  </div>
+
+  <div class="gallery">
+   
+	<figure>
+		<img src="images/aligned_ncc_melons.png" alt="First image">
+		<figcaption>"Melons" <br> RB: (178, 12), GB: (82, 8) </figcaption>
+	  </figure>
+  <figure>
+      <img src="images/aligned_ncc_self_portrait.png" alt="First image">
+      <figcaption>"Self-portrait" <br> RB: (176, 36), GB: (78, 28)  </figcaption>
+    </figure>
+    <figure>
+      <img src="images/aligned_ncc_siren.png" alt="First image">
+      <figcaption>"Siren" <br> RB: (95, -25), GB: (49, -7) </figcaption>
+    </figure>
+  </div>
+
+  <div class="gallery">
+
+	<figure>
+		<img src="images/aligned_ncc_three_generations.png" alt="First image">
+		<figcaption>"Three Generations" <br> RB: (112, 9), GB: (54, 11)  </figcaption>
+	  </figure>
+    <figure>
+      <img src="images/aligned_ncc_emir.png" alt="First image">
+      <figcaption>"Emir" <br> RB: (-468, -1618), GB: (49, 24)  </figcaption>
+      </figure>
+      <figure>
+        <img src="images/I_do_not_see.jpg" alt="I pretend I do not see it">
+        <figcaption>In regards to "Emir"  </figcaption>
+        </figure>
+  </div>
+
+  <p style="text-align:center;""> Three additional images of my choosing from the archive: </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_ncc_camel.png" alt="First image">
+      <figcaption> "Camel" <br> RB: (98, -19), GB: (47, -3)  </figcaption>
+    </figure>
+    <figure>
+      <img src="images/aligned_ncc_brick_building.png" alt="First image">
+      <figcaption>"Brick Building with Arched Entrance and Arcade" <br> RB: (100, -27), GB: (45, -12)  </figcaption>
+    </figure>
+	<figure>
+		<img src="images/aligned_ncc_polevye_maki.png" alt="First image">
+		<figcaption>"Polevye Maki" <br> RB: (121, 40), GB: (25, 19)  </figcaption>
+	  </figure>
+  </div>
+
+  <p> 
+    Although the blue and green images are well aligned, "Emir" in red is flying into space, attempting to explore new heights, new dimensions. 
+    This is likely due to the differences in pixel brightnesses along the three color channels. 
+  </p>
+
+
+
+<h2 style="text-align:center;">Part 3: Bells and Whistles </h3>  
+  
+  <h3 style="text-align:center;">1. Automatic Cropping</h3>
+
+  <p> In this section, I attempt to crop the borders off of the aligned, colorized image. When performing NCC alignment, I crop off a constant 5% from each edge, then add the edges back to return the full image.
+    The resulting colorized image has thick black, white, and colored borders. 
+    <br><br>
+    To detect these borders, I utilize Sobel edge detection. I convert the colorized image to grayscale, then use the steps outlined in Scoring Metrics and Methodology to get an edge-only version. 
+    The Sobel algorithm-produced image highlights edge pixels by assigning them high numeric values, where higher values correspond to stronger edges. Non-edges and weak edges have low values. The difficulty is then finding the highlighted borders within the image.
+    I search for rows and columns of pixels that have:
+    <ol>
+      <li>Low variance. The pixels in a border strip are all extremely close in value. </li>
+      <li>High average value. Borders are strong, harsh edges, and thus are composed of pixels with high values. This prevents the detection of faux borders which are actually entire strips of 0 (non-edge).
+        I look for strips with average values in the top 50% of the image, which results in an aggressive crop. Higher percentiles result in more conservative crops.
+      </li>
+      <li>Locations near the edge of the image. I restrict my search for border edges to within 10% of the image's size from each edge.</li>
+    </ol>
+  </p>
+
+  <p style="text-align:center;"> Here are a few examples of the auto-crop function. </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_ncc_church.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+    <div class="arrow">→</div>
+  <figure>
+      <img src="images/aligned_cropped_ncc_church.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+  </div>
+<br>
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_ncc_monastery.jpg" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+    <div class="arrow">→</div>
+  <figure>
+      <img src="images/aligned_cropped_ncc_monastery.jpg" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+  </div>
+
+  <br>
+
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_ncc_melons.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+    <div class="arrow">→</div>
+  <figure>
+      <img src="images/aligned_cropped_ncc_melons.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+  </div>
+
+  <h3 style="text-align:center;">2. Automatic Contrasting</h3>
+
+  <p>In this section, I attempt to improve the appearance of the colorized images by gently increasing the contrast. 
+    I achieved this by scaling the intensities within the colorized image to 0-1. I noticed that most images had very bright and very dark pixels, so the contrasted image looked the same.
+  I increaed the effect of the scale by using the 1st and 99th percentile values in the image as the minimum and maximum values, respectively. This produced a more intense contrast.
+The percentile values were chosen to improve contrast without losing too much detail in bright and dark areas.</p>
+<p style="text-align:center;"> Here are a few examples of the auto-contrast function. All images in this section and the rest of Part 3 are also auto-cropped to focus on the inner parts of the image. </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_brick_building.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_contrasted_ncc_brick_building.png" alt="First image">
+      <figcaption> The greens in the right tree are richer, and in the left tree is darker. The shadows on the building are deeper. </figcaption>
+    </figure>
+  </div>
+
+  <br>
+
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_church.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_contrasted_ncc_church.png" alt="First image">
+      <figcaption> The blues in the water and sky are richer. The shadowed face of the church is cast more dramatically. </figcaption>
+    </figure>
+  </div>
+
+  <h3 style="text-align:center;">3. Automatic White Balance </h3>
+
+  I tried two methods to automatically apply white balance. 
+  The first was white world, in which I find the brightest value (in this case, the brightest value was the 90th percentile brightest value),
+  then I scale the rest of the values such that the "brightest value" is now 255. 
+  <br> <br>
+  The second was gray world, in which I slide the average value to a neutral gray. I calculated the shifts about the green channel. 
+  I calculate the average value in each channel, and the ratio of the average value of B and R over G. 
+  I use those ratios as scaling factors, like in white world, to move the average values of B and R to that of G. I then clip the channels such that the values are bound between 0 and 255.
+  <br><br>
+  Overall, gray world produced more pleasing results, although white world did a good job at brightening the images overall. Here are some gray world results. 
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_cathedral.jpg" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_white_balance_ncc_cathedral.jpg" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+  </div>
+
+  <br>
+
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_edge_lastochikino.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_white_balance_ncc_lastochikino.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+  </div>
+
+  <br>
+
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_melons.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_white_balance_ncc_melons.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+  </div>
+
+  <br>
+
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_camel.png" alt="First image">
+      <figcaption> </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_white_balance_ncc_camel.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+  </div>
+
+  <h3 style="text-align:center;">4. Better Color Mapping</h3>
+
+  <p>In this section, I attempted to find a better mapping of the B,G, and R filtered images to the RGB channels used to encode color images.
+    I noticed that many of the images had a noticeable yellow tinge, and used an eyedropper tool to pick out bright areas in "Lastochikino", "Cathedral", "Camel", and Harvesters".
+    I used the results from the eyedropper tool to define a yellow pre-filter, which I applied to the image post-alignment to improve the color and reduce the yellow pallor.
+    This adjustment makes the white balance less necessary.
+  </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_melons.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_yellow_shift_ncc_melons.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+  </div>
+  <br>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_lastochikino.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_yellow_shift_ncc_lastochikino.png" alt="First image">
+      <figcaption>   </figcaption>
+    </figure>
+  </div>
+  <br>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_church.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_yellow_shift_ncc_church.png" alt="First image">
+      <figcaption>   </figcaption>
+    </figure>
+  </div>
+
+
+  <h3 style="text-align:center;">5. Better Features</h3>
+
+  <p>In this section, I attempt to use edge detection to better align the images. I use the Sobel Edge Detection described in Scoring Metrics and Methodology to generate an edge-only image for each channel.
+    I then use L2 Norm to calculate the distance between the images, and pick the best alignment as the one with the smallest L2 Norm.
+    <br><br>
+    The main result of this was grabbing the red image "Emir" by the socks and pulling it back down. Most images already looked quite good through NCC alignment, but Church is a bit sharper when aligned through edges.
+  </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_cropped_ncc_church.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+	
+    <div class="arrow">→</div>
+
+  <figure>
+      <img src="images/aligned_cropped_edge_church.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+  </div>
+  <br>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/aligned_ncc_emir.png" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+
+    <div class="arrow">→</div>
+
+  <figure>
+    <img src="images/aligned_cropped_edge_emir.png" alt="First image">
+    <figcaption>  </figcaption>
+  </figure>
+
+  </div>
+  <br>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/I_do_not_see.jpg" alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+
+    <div class="arrow">→</div>
+
+    <figure>
+      <img src="images/i_see.jpg  " alt="First image">
+      <figcaption>  </figcaption>
+    </figure>
+
+
+  </div>
+<br><br>
+  <p style="text-align:center;"> Hey, thanks for reaching the bottom :) </p>
+
+</div>
+
+
+</body>
+</html>
