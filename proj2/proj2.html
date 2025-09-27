@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proj2 CS280A</title>
+  <!-- The loading of KaTeX is deferred to speed up page rendering -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js"></script>
+  <!-- To automatically render math in text elements -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css">
+  <meta charset="UTF-8">
+  <title>Collapsible Code Block</title>
+  <!-- Prism.js CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <style>
+
+	body {
+      display: flex;
+      justify-content: center;   /* center horizontally */
+      align-items: center;       /* center vertically */
+      font-family: Avenir, sans-serif;
+    }
+
+
+	.frame {
+      background: lavender;
+      border-radius: 20px;       /* rounded corners */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* soft shadow */
+	    justify-content: center;
+      padding: 30px;
+      max-width: 90%;        /*  not full page
+      width: 90%;                /* responsive */
+    }
+
+    .gallery {
+      display: flex;
+      justify-content: center;
+      gap: 20px;          /* space between images */
+      flex-wrap: wrap;    /* allows stacking if screen is too narrow */
+    }
+    figure {
+      text-align: center;
+      max-width: 400px;   /* control image size */
+      margin: 0;
+      display: flex;
+      margin-top: 10pxl;
+      flex-direction: column;
+      align-items: center; 
+    }
+    figure img {
+      height: 200px;        /* make image fit within max-width */
+      width: auto;
+      border-radius: 0px;
+      display: block;
+      /* object-fit: contain;   */
+    }
+    /* Small version */
+    figure.small img {
+      height: 200px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    /* Large version */
+    figure.large img {
+      height: 400px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    figcaption.large {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 400px;              /* don’t exceed image */
+    }
+
+    figcaption.small {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 200px;              /* don’t exceed image */
+    }
+
+    .arrow {
+      font-size: 2rem;
+      display: flex; 
+      color: #666;
+      user-select: none;
+      align-items: center;       /* vertical center */
+      justify-content: center;   /* horizontal center */
+      flex-shrink: 0;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="frame">
+
+  
+<h1 style="text-align:center;">Project 2:  Filters and Frequencies </h1>
+
+<p > In this project, I explore convolution, high-pass filtering, and low-pass filtering on various images 
+  for the purposes of blurring, sharpening, making hybrid images, and blending images together along straight and irregular seams.
+
+
+  <!-- <p>Math can be inline like \(2^{2x}=4\), or displayed like:</p> -->
+
+
+<h2 style="text-align:center;">Part 1: Filters </h2>
+
+<h3 style="text-align:center;">1.1: Convolutions From Scratch </h3>
+  <p style="text-align:center;""> I implement convolutions from scratch, using four loops and two loops. I zero-pad the edges to match the behavior of <code>scipy.signal.convolve2d's </code> "full" mode.
+  </p>
+
+  <p> First, I wrote a convolution with four loops. Two to iterate over each pixel, and two more to iterate over each pixel of the filter. Here is the code. </p>
+  <details>
+    <summary>Click to see code snippet</summary>
+
+    <pre><code class="language-python">
+      def convolve_2d_4_loops(img, fltr):
+        # flip the filter horizontally and vertically
+        start = time.time()
+        filter = fltr.copy()
+        if fltr.ndim == 1:
+            # if it's a row vector, make it 2d so the rest of the function can cope
+            fltr = fltr.reshape(1,-1)
+        filter = np.flip(fltr, axis=1)
+        filter = np.flip(filter, axis=0)
+        r_margin = filter.shape[0] - 1
+        c_margin = filter.shape[1] - 1
+        # we pad the image accordingly to fit with the "full" method.
+        # 0-padding
+        img_pad = np.pad(img, pad_width=((r_margin, r_margin),(c_margin, c_margin)))
+        filtered_img = np.zeros((img.shape[0] + r_margin, img.shape[1] + c_margin), dtype=float)
+        for r in range(0, img_pad.shape[0] - r_margin):
+            for c in range(0, img_pad.shape[1] - c_margin):
+                # we lay the filter over the image, multiply each value by those below, and add them. that value becomes the center value.
+                dot_cum = 0.0
+                for fr in range(0, filter.shape[0]):
+                    for fc in range(0, filter.shape[1]):
+                        dot = filter[fr,fc] * img_pad[r+fr,c+fc]
+                        dot_cum += dot
+                # we set the center value under the filter to equal dot_cum
+                filtered_img[r, c] = dot_cum
+        print("convolved with 4 loops for", time.time() - start, "seconds")
+        return filtered_img
+    </code></pre>
+  </details>
+  <p> Next, I wrote a convolution with two loops. Two to iterate over each pixel, but inside those I flatten the filter and the image pixels in range and use a numpy dot product. </p>
+  <details>
+    <summary>Click to see code snippet</summary>
+
+    <pre><code class="language-python">
+    def convolve_2d_2_loops(img, fltr):
+      start = time.time()
+      # flip the filter horizontally and vertically
+      filter = fltr.copy()
+      if fltr.ndim == 1:
+          # if it's a row vector, make it 2d so the rest of the function can cope
+          fltr = fltr.reshape(1,-1)
+      filter = np.flip(fltr, axis=1)
+      filter = np.flip(filter, axis=0)
+      r_margin = filter.shape[0] - 1
+      c_margin = filter.shape[1] - 1
+      # we pad the image accordingly to fit with the "full" method.
+      # 0-padding
+      img_pad = np.pad(img, pad_width=((r_margin, r_margin),(c_margin, c_margin)))
+      filtered_img = np.zeros((img.shape[0] + r_margin, img.shape[1] + c_margin), dtype=float)
+      for r in range(0, img_pad.shape[0] - r_margin):
+          for c in range(0, img_pad.shape[1] - c_margin):
+              # we lay the filter over the image, multiply each value by those below, and add them. that value becomes the center value.
+              # flatten filter into a vector
+              fltr_vec = np.reshape(filter, -1)
+              subimg_vec = np.reshape(img_pad[r:r+filter.shape[0], c:c+filter.shape[1]], -1)
+              dot_cum = np.dot(fltr_vec, subimg_vec)
+              # we set the center value under the filter to equal dot_cum
+              filtered_img[r, c] = dot_cum
+      print("convolved with 2 loops for", time.time() - start, "seconds")
+      return filtered_img
+    </code></pre>
+  </details>
+
+  <p> Here, I apply a 9x9 box filter, where all values are 1/81. This blurs the image. </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/part_1_original.jpg" alt="First image">
+      <figcaption class="small">Original image </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_2_loops.jpg" alt="First image">
+      <figcaption class="small">Convolved with two loops </figcaption>
+    </figure>
+    <figure>
+      <img src="images/part_1_4_loops.jpg" alt="First image">
+      <figcaption class="small">Convolved with four loops </figcaption>
+    </figure>
+    <figure>
+      <img src="images/part_1_scipy.jpg" alt="First image">
+      <figcaption class="small">Convolved with convolve2d </figcaption>
+    </figure>
+  </div>
+
+  <p> Now, I convolve the image with finite difference operators Dx = [1,0,-1] and Dy = [[1],[0],[-1]]</p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/part_1_2_loops_dx.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dx, 2 loops </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_2_loops_dy.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dy, 2 loops </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure>
+      <img src="images/part_1_4_loops_dx.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dx, 4 loops </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_4_loops_dy.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dy, 4 loops </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure>
+      <img src="images/part_1_scipy_dx.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dx, convolve2d </figcaption>
+    </figure>
+    <figure>
+      <img src="images/part_1_scipy_dy.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dy, convolve2d </figcaption>
+    </figure>
+  </div>
+
+  <p>Between the three methods, scipy.signal.convolve2d ran the fastest with runtimes of 0.022, 0.002, and 0.003 seconds respectively.
+    The 2 loop approach was the second fastest, with runtimes of 0.46, 0.043, and 0.043 respectively.
+    The 4 loop appraoch was the slowest, with runtimes of 4.34, 0.37, and 0.44 seconds respectively.
+    The differences in runtime became most apparent between the two and four loop approaches for larger filter sizes. For Dx and Dy, which are size 3 total, the difference between the 2 and 4 loop approaches is very small.
+     However, for the 9x9 box filter, 2 loop outperforms the 4 loop by a factor of 10.
+     The default implementation of scipy.signal.convolve2d is to do a "full" convolution, which by default zero-pads the edges of the images.
+     I mimicked this behavior in my 2 and 4 loop approaches, which causes the black borders around the images (seen best in the box filtered dog pictures.).
+     However, scipy.signal.convolve2d also offers a symmetric, or "symm" boundary, which I use in later parts of the project to avoid that black border.
+  </p>
+
+
+<h3 style="text-align:center;">1.2: Finite Difference Operator </h3>
+  <p style="text-align:center;""> I find the partial derivatives of the cameraman image by convolving it with the finite difference operators Dx = [1,0,-1] and Dy = [[1],[0],[-1]].
+    I find the gradient magnitudes with \sqrt{(\text{convolved_dx})^2 + (\text{convolved\_dy})^2}.
+  </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/cameraman.png" alt="First image">
+      <figcaption class="small">Original image </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_camera_x.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dx </figcaption>
+    </figure>
+    <figure>
+      <img src="images/part_1_camera_y.jpg" alt="First image">
+      <figcaption class="small">Convolved with Dy </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_camera_mags.jpg" alt="First image">
+      <figcaption class="small">The gradient magnitudes </figcaption>
+    </figure>
+    <figure>
+      <img src="images/part_1_camera_mags_threshold.jpg" alt="First image">
+      <figcaption class="small">Thresholded at the 93rd percentile. This threshold maintained most of the edges within the cameraman with minimal noise in the grass. </figcaption>
+    </figure>
+  </div>
+
+<h3 style="text-align:center;">1.3: Derivative of the Gaussian (DoG) Filter </h3>
+  <p style="text-align:center;""> I blur the original cameraman image by convolving with a Gaussian, then repeat the process from 1.2.
+  </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/part_1_camera_smoothed.jpg" alt="First image">
+      <figcaption class="small">Original image, gaussian blurred </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_camera_mags_dog.jpg" alt="First image">
+      <figcaption class="small">Gradient magnitudes of the blurred image </figcaption>
+    </figure>
+  </div>
+
+
+  <p style="text-align:center;""> Already, we notice an improvement in the amount of noisy edges. There is much less noise in the grass, and we are able to keep some of the edges in the background buildings.
+    Now, I convolve Dx and Dy with the Gaussian filter first, creating a derivative of Gaussian filter in X and Y. I then convolve the DoGs with the cameraman image. 
+  </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/part_1_gauss.jpg" alt="First image">
+      <figcaption class="small">The Gaussian filter </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_gauss_dx.jpg" alt="First image">
+      <figcaption class="small">The Gaussian filter convolved with Dx </figcaption>
+    </figure>
+    <figure>
+      <img src="images/part_1_gauss_dy.jpg" alt="First image">
+      <figcaption class="small">The Gaussian filter convolved with Dy </figcaption>
+    </figure>
+  <figure>
+      <img src="images/part_1_camera_1conv.jpg" alt="First image">
+      <figcaption class="small">Gradient magnitudes of the original image convolved with the DoG filters </figcaption>
+    </figure>
+  </div>
+
+  <p>Compared to the finite difference method, the smoothed images remove a lot of noise before we look for the edges. 
+    This is particularly noticeable in the grass. With thresholding, we trade off the edges in the buildings for less noise in the grass.
+    With smoothing, we get to keep the building edges, and reduce the grass edges.
+  </p>
+
+<h3 style="text-align:center;">Bells and Whistles: Image Gradient Orientations in HSV space </h3>
+  <p> I compute the gradient orientations from 1.2 using the following formula: \( \arctan\!\left(\frac{\text{convolved\_y}}{\text{convolved\_x}}\right) \).
+    I convert the angles from radians to degrees, and then half them to avoid having negative values, as the range in radians is -pi to pi.
+    These angles make up the H component. The S component is an array of 255s, to have maximum saturation.
+    The V component is the normalized gradient magnitudes, scaled to 0-255. This HSV arrangement prioritizes strong edges over weak edges.
+  </p>
+
+  <div class="gallery">
+    <figure class="large">
+      <img src="images/part_1_camera_orientations.jpg" alt="First image">
+      <figcaption class="large">Gradient orientations, visualized in HSV space. </figcaption>
+    </figure>
+  </div>
+
+
+  <h2 style="text-align:center;">Part 2: Frequencies </h2>
+
+  <h3 style="text-align:center;">2.1: Image Sharpening </h3>
+    <p> I sharpen images using the Unsharp Mask Filter. 
+      <br><br> 
+      The basic process is to apply a low-pass filter (a 2d Gaussian kernel), then subtract the low-passed image from the original image.
+      Subtracting off the smoothed image removes the low frequencies, and leaves the edges and details (high-frequencies) in the image.
+      The image can be "sharpened" by re-adding a multiple of these details to the original image, as boosting the high frequencies makes the image appear sharper.
+      <br><br> 
+      We can condense this process into a single convolution operation. The Unsharp Mask Filter equation is: \( (1 + \alpha)\, e \;-\; \alpha \, \text{kernel}_{2d} \).
+      \(e\) is the unit impulse (all 0s except for the center value), and alpha is a chosen constant to provide the best-appearing result.
+
+      <br><br>
+      Unless stated, all standard deviations for Gaussian kernels are the kernel size divided by 6.
+    </p>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="images2/taj.jpg" alt="First image">
+        <figcaption class="small">Taj Mahal </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="images2/part_1_taj_blurred.jpg" alt="First image">
+        <figcaption class="small">Taj Mahal blurred with Gaussian kernel size = 5</figcaption>
+      </figure>
+      <figure class="small">
+        <img src="images2/part_1_taj_high.jpg" alt="First image">
+        <figcaption class="small">Taj Mahal details, multiplied by 10 for visibility </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="images2/taj_sharp.jpg" alt="First image">
+        <figcaption class="small">Taj Mahal sharpened with Gaussian kernel size = 5 and alpha = 2 </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure class="small">
+        <img src="images2/window_shar.jpeg" alt="First image">
+        <figcaption class="small">Window Shark </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="images2/part_1_shar_blurred.jpg" alt="First image">
+        <figcaption class="small">Window shark blurred with Gaussian kernel size = 5 </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="images2/part_1_shar_high.jpg" alt="First image">
+        <figcaption class="small">Window shark details </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="images2/shar_sharp.jpg" alt="First image">
+        <figcaption class="small">Window shark sharpened with Gaussian kernel size = 5 and alpha = 10 </figcaption>
+      </figure>
+    </div>
+
+    <p style="text-align:center;"> Here, I explore how changing alpha affects the result. </p>
+    <div class="gallery">
+      <figure>
+        <img src="images2/lobster.jpeg" alt="First image">
+        <figcaption class="small">Lobster </figcaption>
+      </figure>
+      <figure>
+        <img src="images/part_1_lob_sharp_1.jpg" alt="First image">
+        <figcaption class="small">Lobster sharpened with Gaussian kernel size = 5 and alpha = 1 </figcaption>
+      </figure>
+      <figure>
+        <img src="images/part_1_lob_sharp_1.5.jpg" alt="First image">
+        <figcaption class="small">Lobster sharpened with Gaussian kernel size = 5 and alpha = 1.5 </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="images/part_1_lob_sharp_2.jpg" alt="First image">
+        <figcaption class="small">Lobster sharpened with Gaussian kernel size = 5 and alpha = 2 </figcaption>
+      </figure>
+      <figure>
+        <img src="images/part_1_lob_sharp_2.5.jpg" alt="First image">
+        <figcaption class="small">Lobster sharpened with Gaussian kernel size = 5 and alpha = 2.5 </figcaption>
+      </figure>
+      <figure>
+        <img src="images/part_1_lob_sharp_3.5.jpg" alt="First image">
+        <figcaption class="small">Lobster sharpened with Gaussian kernel size = 5 and alpha = 3.5 </figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="images2/skeleton.jpeg" alt="First image">
+        <figcaption class="large">Home Depot Skeleton</figcaption>
+      </figure>
+      <figure class="large">
+        <img src="images2/skeleton_blur.jpg" alt="First image">
+        <figcaption class="large">Skeleton blurred with a Gaussian kernel size = 10 </figcaption>
+      </figure>
+      <figure class="large">
+        <img src="images2/skeleton_sharp.jpg" alt="First image">
+        <figcaption class="large">Skeleton sharpened with a Gaussian kernel size = 10 and alpha = 5 </figcaption>
+      </figure>
+    </div>
+
+    <p> We notice that the blurred and re-sharpened skeleton doesn't re-gain its natural sharp edges. 
+      Instead, the generated edges through the unsharp mask are unnaturally contrasting. The skeleton looks a little deep-fried.</p>
+
+
+  <h3 style="text-align:center;">2.2: Hybrid Images </h3>
+    <p> In this section, I create hybrid images, like in the SIGGRAPH 2006 paper by Oliva, Torralba, and Schyns <a href=https://web.archive.org/web/20070315210101/http://cvcl.mit.edu/hybrid/OlivaTorralb_Hybrid_Siggraph06.pdf>here</a>.
+      Hybrid images are static images that appear different depending on the viewing distance. Close up, high-frequency components dominate, but further away, the low-frequency components dominate.
+      To achieve this effect, I calculate a high-frequency (high-passed) image by subtracting a Gaussian blur from the impulse filter, yielding the details. I calculate a low frequency (low-passed) image by smoothing it with a different size Gaussian.
+      I align the images, and sum them together. The Gaussian kernel sizes and standard deviations were chosen by experimentation.
+    </p>
+
+    <div class="gallery">
+      <figure>
+        <img src="images2/DerekPicture.jpg" alt="First image">
+        <figcaption class="small">Derek, original image </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/david_low.jpg" alt="First image">
+        <figcaption class="small">Low pass with Gaussian kernel of size = 30, sigma = 20 </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="images2/nutmeg.jpg" alt="First image">
+        <figcaption class="small">Derek's former cat Nutmeg, Original image </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/cat_high.jpg" alt="First image">
+        <figcaption class="small">High pass with Gaussian kernel of size 9, sigma 9/6. All values increased by 100 for visibility. </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure class="large">
+        <img src="images2/catdavidhybrid.jpg" alt="First image">
+        <figcaption class="large">Hybrid of David + Nutmeg </figcaption>
+      </figure>
+    </div>
+
+    <br><br>
+    <p>Here is the entire process for making the hybrid image "BLÅHAJ's True Form".</p>
+
+    <div class="gallery">
+      <figure>
+        <img src="images2/blahaj.png" alt="First image">
+        <figcaption class="small">BLÅHAJ, original image </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/blahaj_fft_before.jpg" alt="First image">
+        <figcaption class="small">Fourier transform of BLÅHAJ </figcaption>
+      </figure>
+    <figure>
+        <img src="images2/blahaj_higih.jpg" alt="First image">
+        <figcaption class="small">High pass, aligned BLÅHAJ with Gaussian kernel of size 10, sigma 10/6. All values increased by 100 for visibility. </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/blahaj_fft_after.jpg" alt="First image">
+        <figcaption class="small">Fourier transform of high-passed BLÅHAJ </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="images2/blue_shark.png" alt="First image">
+        <figcaption class="small">Blue Shark, original image </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/blue_shark_fft_before.jpg" alt="First image">
+        <figcaption class="small">Fourier transform of Blue Shark </figcaption>
+      </figure>
+    <figure>
+        <img src="images2/blue_shark_low.jpg" alt="First image">
+        <figcaption class="small">Low pass, aligned Blue Shark with Gaussian kernel of size = 15, sigma = 10  </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/blue_shark_fft_after.jpg" alt="First image">
+        <figcaption class="small">Fourier transform of low-passed Blue Shark </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure class="large">
+        <img src="images2/blahajhybrid.jpg" alt="First image">
+        <figcaption class="large">BLÅHAJ from close up. BLÅHAJ's true form from far away </figcaption>
+      </figure>
+      <figure class="large">
+        <img src="images2/hybrid_fft.jpg" alt="First image">
+        <figcaption class="large">Fourier transform of "BLÅHAJ's True Form" </figcaption>
+      </figure>
+    </div>
+
+    <br><br>
+
+
+    <div class="gallery">
+      <figure>
+        <img src="images2/chart.jpg" alt="First image">
+        <figcaption class="small">Eye chart, original image </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/eyechart_high.jpg" alt="First image">
+        <figcaption class="small">Low pass with Gaussian kernel of size = 10, sigma = 10/6  </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="images2/many_glasses.jpeg" alt="First image">
+        <figcaption class="small">Many glasses, original image </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/glasses_low.jpg" alt="First image">
+        <figcaption class="small">Low pass with Gaussian kernel of size = 50, sigma = 10  </figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure class="large">
+        <img src="images2/eyeglasseshybrid.jpg" alt="First image">
+        <figcaption class="large">To commemorate those (like me) with poor eyesight. From close up, you can read the chart letters. From afar, the letters fade away, and you see your reality (the glasses) </figcaption>
+      </figure>
+    </div>
+
+  <h3 style="text-align:center;">Bells and Whistles: Color in Hybrid Images </h3>
+    <p style="text-align:center;""> I experiment with color and grayscale in the hybrid images to see which looks best.
+    </p>
+
+  <div class="gallery">
+      <figure>
+        <img src="images2/blahaj_higih_g1.jpg" alt="First image">
+        <figcaption class="small">Grayscale high pass BLÅHAJ </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/blue_shark_low_g1.jpg" alt="First image">
+        <figcaption class="small">Same low pass Blue Shark as before  </figcaption>
+      </figure>
+         <figure>
+        <img src="images2/hybrid_g1.jpg" alt="First image">
+        <figcaption class="small">Hybrid BLÅHAJ Blue Shark. </figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure>
+        <img src="images2/blahaj_higih_g2.jpg" alt="First image">
+        <figcaption class="small">Color high pass BLÅHAJ </figcaption>
+      </figure>
+      <figure>
+        <img src="images2/blue_shark_low_g2.jpg" alt="First image">
+        <figcaption class="small">Grayscale low pass Blue Shark </figcaption>
+      </figure>
+         <figure>
+        <img src="images2/hybrid_g2.jpg" alt="First image">
+        <figcaption class="small">Hybrid BLÅHAJ Blue Shark </figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure>
+        <img src="images2/blahaj_higih_both.jpg" alt="First image">
+        <figcaption class="small">Grayscale high pass BLÅHAJ</figcaption>
+      </figure>
+      <figure>
+        <img src="images2/blue_shark_low_both.jpg" alt="First image">
+        <figcaption class="small">Grayscale low pass Blue Shark  </figcaption>
+      </figure>
+         <figure>
+        <img src="images2/hybrid.jpg" alt="First image">
+        <figcaption class="small">Full grayscale hybrid BLÅHAJ Blue Shark  </figcaption>
+      </figure>
+    </div>
+
+    <p> The grayscale low pass image tends to drown out the colored high pass image, and both end up looking grayscale. Both images being grayscale looks nice, or both colored.
+      For one grayscale one colored, the colored low-pass retains the reconigzability of both images better than the colored high pass. 
+    </p>
+
+
+
+  <h3 style="text-align:center;">2.3: Gaussian and Laplacian Stacks </h3>
+    <p> I implement Gaussian and Laplacian stacks to help with the blending in part 2.4.
+      Image Stacks are similar to Image Pyramids, but I do not downsample the image. Instead, at each layer in the Gaussian pyramid, I only convolve the image with a Gaussian kernel to blur it.
+      In the Laplacian Stack, I take the current layer, apply a Gaussian kernel to it and blur it, then subtract the blurred image from the current layer. This yields the Laplacian of the image. 
+      The Laplacian Stack yields a set of high-passed images, each with the highest frequencies in their respective layer.
+      At the end of the Laplacian Stack, I return the low-passed image (blurred). With this final layer, I can sum up all of the images from the Laplacian Stack and recreate the original image, completely losslessly.
+    </p>
+
+  <h3 style="text-align:center;">2.4: Multiresolution Blending (The Oraple) </h3>
+    <p> I apply a vertical mask to blend an image of an apple and an orange.
+      I make a Laplacian Stack for both images, a Gaussian Stack for the mask, and
+      use the formula \( l_k = l_k^{A} \cdot m_k + l_i^{B} \cdot (1 - m_k) \), where A and B are the two images,
+      to blend the images together at each layer of the Laplacian Stack.
+    </p>
+
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/orple_1.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/orple_2.jpg" alt="First image">
+      </figure>
+    <figure>
+      <img src="orple_images/orple_0.jpg" alt="First image">
+    </figure>
+  </div>
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/orple_7.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/orple_8.jpg" alt="First image">
+      </figure>
+      <figure>
+        <img src="orple_images/orple_6.jpg" alt="First image">
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/orple_13.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/orple_14.jpg" alt="First image">
+      </figure>
+      <figure>
+        <img src="orple_images/orple_12.jpg" alt="First image">
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/apple_half.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/orange_half.jpg" alt="First image">
+      </figure>
+      <figure>
+        <img src="orple_images/orple.jpg" alt="First image">
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="orple_images/orple.jpg" alt="First image">
+        <figcaption class="large">The final oraple </figcaption>
+      </figure>
+    </div>
+
+    <p style="text-align:center;""> The Oraple uses a straight spline (mask seam). Here are some additional blending examples, with irregular masks.
+    </p>
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="orple_images/ssf.png" alt="First image">
+        <figcaption class="large">Ultimate Frisbee players</figcaption>
+      </figure>
+      </div>
+      <div class="gallery">
+      <figure class="large">
+        <img src="orple_images/ssc.png" alt="First image">
+        <figcaption class="large">The cucumber</figcaption>
+      </figure>
+      </div>
+      <div class="gallery">
+      <figure class="large">
+        <img src="orple_images/frisbeecucumber.jpg" alt="First image">
+      <figcaption class="large">The Ultimate reward</figcaption>
+    </figure>
+  </div>
+
+  <p style="text-align:center;">Another blended image:</p>
+
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/cucumberslice.jpg" alt="First image">
+        <figcaption class="large">Cucumber, original image </figcaption>
+      </figure>
+      <figure>
+        <img src="orple_images/singlefrisbee.jpg" alt="First image">
+        <figcaption class="large">Frisbee, original image </figcaption>
+      </figure>
+      <figure>
+        <img src="orple_images/bigfrisbeemask.jpg" alt="First image">
+      <figcaption class="large">The mask </figcaption>
+    </figure>
+  </div>
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/cucfris_1.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/cucfris_2.jpg" alt="First image">
+      </figure>
+    <figure>
+      <img src="orple_images/cucfris_0.jpg" alt="First image">
+    </figure>
+  </div>
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/cucfris_7.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/cucfris_8.jpg" alt="First image">
+      </figure>
+      <figure>
+        <img src="orple_images/cucfris_6.jpg" alt="First image">
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/cucfris_13.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/cucfris_14.jpg" alt="First image">
+      </figure>
+      <figure>
+        <img src="orple_images/cucfris_12.jpg" alt="First image">
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure>
+        <img src="orple_images/cucfrishalf2.jpg" alt="First image">
+      </figure>
+    <figure>
+        <img src="orple_images/cucfrishalf.jpg" alt="First image">
+      </figure>
+      <figure>
+        <img src="orple_images/bigfrisbeecucumber.jpg" alt="First image">
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="orple_images/bigfrisbeecucumber.jpg" alt="First image">
+        <figcaption class="large">The Friscumber </figcaption>
+      </figure>
+    </div>
+
+    <p style="text-align:center;">One final blended image:</p>
+
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="orple_images/climbingclip.png" alt="First image">
+        <figcaption class="large">Me, climbing for the first time in 2023 </figcaption>
+      </figure>
+      <figure class="large">
+        <img src="orple_images/rockclip.png" alt="First image">
+        <figcaption class="large">Rocks </figcaption>
+      </figure>
+      <figure class="large">
+        <img src="orple_images/climbingmask.jpg" alt="First image">
+      <figcaption class="large">The mask </figcaption>
+    </figure>
+  </div>
+
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="orple_images/climbingblend.jpg" alt="First image">
+        <figcaption class="large">What I feel like I'm doing whenever I go rock climbing </figcaption>
+      </figure>
+    </div>
+
+
+
+  <h3 style="text-align:center;">Bells and Whistles: Color in Blended Images </h3>
+    <p style="text-align:center;""> I experiment with color and grayscale in the blended images to see which looks best.
+    </p>
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="images2/gorple.jpg" alt="First image">
+        <figcaption class="large">A grayscale oraple. </figcaption>
+      </figure>
+      <figure class="large">
+        <img src="images2/glimb.jpg" alt="First image">
+        <figcaption class="large">A grayscale climbing blend. </figcaption>
+      </figure>
+  </div>
+  <p>Although it's easier to mask poor masking (pun intended) in grayscale, it's hard to beat the color images for visual appeal. </p>
+
+
+<p>
+  Image references: 
+  <a href=https://en.wikipedia.org/wiki/Blue_shark>Blue Shark</a>
+  <a href=https://www.ikea.com/nl/en/p/blahaj-soft-toy-shark-30373588/>BLÅHAJ</a>
+  <a href=https://www.amazon.com/Upgraded-Snellen-Plastic-Decoration-Distance/dp/B0C4HDS3PG>Eye Chart</a>
+  <a href=https://www.warbyparker.com/learn/how-to-buy-glasses-online>Glasses</a>
+  <a href=https://web.archive.org/web/20070315210101/http://cvcl.mit.edu/hybrid/OlivaTorralb_Hybrid_Siggraph06.pdf>Ultimate Frisbee players</a>
+  <a href=https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2Fgroups%2F295175674011498%2F&psig=AOvVaw1lKFQnkSTZzcvN6JIOVPkZ&ust=1759039001901000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJjs-4ih-I8DFQAAAAAdAAAAABAE>Frisbee</a>
+  <a href=https://www.istockphoto.com/photos/sliced-cucumber>Cucumber</a>
+  <a href=https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.nationalgeographic.com%2Fphoto-of-the-day%2Fphoto%2Fcliff-climber-oman-chin&psig=AOvVaw0_ZPSffEWgA3vRydQ7Vc5J&ust=1759038931446000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJjI8Oag-I8DFQAAAAAdAAAAABAE>Rocks</a>
+
+</p>
+  
+<br><br>
+  <p style="text-align:center;"> Hey, thanks for reaching the bottom :) </p>
+
+</div>
+
+
+</body>
+</html>
