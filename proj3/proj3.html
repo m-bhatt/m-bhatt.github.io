@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proj3 CS280A</title>
+  <!-- The loading of KaTeX is deferred to speed up page rendering -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js"></script>
+  <!-- To automatically render math in text elements -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css">
+  <meta charset="UTF-8">
+  <title>Collapsible Code Block</title>
+  <!-- Prism.js CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <style>
+
+	body {
+      display: flex;
+      justify-content: center;   /* center horizontally */
+      align-items: center;       /* center vertically */
+      font-family: Avenir, sans-serif;
+    }
+
+
+	.frame {
+      background: lavender;
+      border-radius: 20px;       /* rounded corners */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* soft shadow */
+	    justify-content: center;
+      padding: 30px;
+      max-width: 90%;        /*  not full page
+      width: 90%;                /* responsive */
+    }
+
+    .gallery {
+      display: flex;
+      justify-content: center;
+      gap: 20px;          /* space between images */
+      flex-wrap: wrap;    /* allows stacking if screen is too narrow */
+    }
+    figure {
+      text-align: center;
+      max-width: 400px;   /* control image size */
+      margin: 0;
+      display: flex;
+      margin-top: 10pxl;
+      flex-direction: column;
+      align-items: center; 
+    }
+    figure img {
+      height: 200px;        /* make image fit within max-width */
+      width: auto;
+      border-radius: 0px;
+      display: block;
+      /* object-fit: contain;   */
+    }
+    /* Small version */
+    figure.small img {
+      height: 200px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    /* Large version */
+    figure.large img {
+      height: 400px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    figcaption.large {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 400px;              /* don’t exceed image */
+    }
+
+    figcaption.small {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 200px;              /* don’t exceed image */
+    }
+
+    .arrow {
+      font-size: 2rem;
+      display: flex; 
+      color: #666;
+      user-select: none;
+      align-items: center;       /* vertical center */
+      justify-content: center;   /* horizontal center */
+      flex-shrink: 0;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="frame">
+
+  
+<h1 style="text-align:center;">Project 3:  Panorama Stitching </h1>
+
+<p style="text-align:center;"> In this project, I explore homographies, warping, and blending to stitch together images in a panorama.
+
+
+  <!-- <p>Math can be inline like \(2^{2x}=4\), or displayed like:</p> -->
+
+
+<h2 style="text-align:center;">Part 1: Manual Stitching </h2>
+
+<h3 style="text-align:center;">A.1: Collecting Images </h3>
+  <p style="text-align:center;""> I shoot two or more photographs that differ from each other via a projective transformation. I fixed the Center of Projection (COP) and rotated my camera while shooting.
+  </p>
+
+  <p style="text-align:center;"">Hearst Mining Memorial Building, Floor 3</p>
+  <div class="gallery">
+    <figure>
+      <img src="images/mining_1.jpeg" alt="First image">
+      <figcaption class="small">Left </figcaption>
+    </figure>
+  <!-- <figure>
+      <img src="images/mining_2.jpeg" alt="First image">
+      <figcaption class="small">Center </figcaption>
+    </figure> -->
+    <figure>
+      <img src="images/mining_3.jpeg" alt="First image">
+      <figcaption class="small">Right </figcaption>
+    </figure>
+  </div>
+
+  <p style="text-align:center;"">A San Francisco building, near Grace Cathedral</p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/sf_2.jpeg" alt="First image">
+      <figcaption class="small">Straight forward </figcaption>
+    </figure>
+  <figure>
+      <img src="images/sf_1.jpeg" alt="First image">
+      <figcaption class="small">Tilted up </figcaption>
+    </figure>
+  </div>
+  
+  <p style="text-align:center;"">The T. Rex in the Valley Life Sciences Building </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/trex_1.jpeg" alt="First image">
+      <figcaption class="small">Straight forward </figcaption>
+    </figure>
+  <figure>
+      <img src="images/trex_2.jpeg" alt="First image">
+      <figcaption class="small">Tilted up </figcaption>
+    </figure>
+  </div>
+
+<p style="text-align:center;"">The Campanile </p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/campanile_1.jpeg" alt="First image">
+      <figcaption class="small">Straight forward </figcaption>
+    </figure>
+  <figure>
+      <img src="images/campanile_2.jpeg" alt="First image">
+      <figcaption class="small">Tilted up </figcaption>
+    </figure>
+  </div>
+
+
+<h3 style="text-align:center;">A.2: Recovering Homographies </h3>
+  <p style="text-align:center;""> I manually select correspondences on an image set, and recover the homography matrix h. 
+    <br>
+    2d homgraphies follow: 
+    \[ 
+    \lambda 
+    \begin{bmatrix}
+    u \\ 
+    v \\ 
+    1
+    \end{bmatrix}
+    = 
+    H
+    \begin{bmatrix}
+    x \\ 
+    y \\ 
+    1
+    \end{bmatrix},
+    \]
+
+    where lambda is a scalar and H is a 3x3 matrix: 
+    \[ 
+    H= 
+    \begin{bmatrix} 
+    h_1 & h_2 & h_3 \\ 
+    h_4 & h_5 & h_6 \\ 
+    h_7 & h_8 & 1 
+    \end{bmatrix}.
+    \]
+
+    We can recover the matrix H by solving an OLS problem of the form Ah = b, where h is the flattened H matrix. Each point yields two equations, of the form: 
+    $$
+    \begin{bmatrix}
+    x_1 & y_1 & 1 & 0 & 0 & 0 & -u_1 x_1 & -u_1 y_1 \\
+    0 & 0 & 0 & x_1 & y_1 & 1 & -v_1 x_1 & -v_1 y_1 \\ ... &... &... &... &... &...& ...& ...
+    \end{bmatrix}
+    \begin{bmatrix}
+    h_1 \\ h_2 \\ ...
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+    u_1 \\ v_1 \\ ...
+    \end{bmatrix}
+    $$
+    <br>
+    The colored circles are the point correspondences for the T.Rex image set. 
+    The system is overdefined: 4 correspondences are required to get a solution, but I provide 8 to reduce noise and improve stability.
+      
+    <div class="gallery">
+      <figure>
+        <img src="images/trex_1_correspondences.jpg" alt="First image">
+        <figcaption class="small">Correspondences on T.Rex shot straight forward </figcaption>
+      </figure>
+    <figure>
+        <img src="images/trex_2_correspondences.jpg" alt="First image">
+        <figcaption class="small">Correspondences on T.Rex shot tilted up </figcaption>
+      </figure>
+    </div>
+
+    The system of equations is as follows. If Ah = b, 
+
+    \[ 
+    \begin{bmatrix}
+    403.578 &  292.331 &  1.0 & 0.0 &  0.0 &  0.0 & -170861.985 & -123763.763 \\
+    0.0 &  0.0 &  0.0 & 403.578099 &  292.331522 &  1.0 & -256034.470 & -185458.395  \\
+    513.835189 &  310.707704 &  1.0 & 0.0 &  0.0 &  0.0 & -273468.930 & -165362.173  \\
+    0.0 &  0.0 &  0.0 & 513.835189 &  310.707704 &  1.0 &-334698.800 & -202386.870  \\
+    618.438069 &  551.011618 &  1.0 & 0.0 &  0.0 &  0.0 &-389459.202 & -346997.631  \\
+    0.0 &  0.0 &  0.0 & 618.438069 &  551.011618 &  1.0 &-570679.750 & -508460.246  \\
+    1055.22577 &  143.908517 &  1.0 & 0.0 &  0.0 &  0.0 &-1113501.43 & -151855.975  \\
+    0.0 &  0.0 &  0.0 & 1055.22577 &  143.908517 &  1.0 &-527743.449 & -71972.0641  \\
+    358.344421 &  124.118783 &  1.0 & 0.0 &  0.0 &  0.0 &-142087.267 & -49214.3803  \\
+    0.0 &  0.0 &  0.0 & 358.344421 &  124.118783 &  1.0 &-171111.930 & -59267.5740  \\
+    689.115690 &  204.691271 &  1.0 & 0.0 &  0.0 &  0.0 &-48656.9649 & -144528.069  \\
+    0.0 &  0.0 &  0.0 & 689.115690 &  2.0.4691271 &  1.0 &-379710.751 & -112787.269  \\
+    378.134155 &  214.586138 &  1.0 & 0.0 &  0.0 &  0.0 &-153675.688 & -87208.9233  \\
+    0.0 &  0.0 &  0.0 & 378.134155 &  214.586138 &  1.0 &-211563.387 & -120059.428  \\
+    376.720603 &  169.352460 &  1.0 & 0.0 &  0.0 &  0.0 &-154166.242 & -69304.4983  \\
+    0.0 &  0.0 &  0.0 & 376.720603 &  169.352460 &  1.0 &-194797.085 & -87569.8472 
+    \end{bmatrix} 
+    \begin{bmatrix} 
+    h_1 \\  h_2 \\  h_3 \\ 
+    h_4 \\ h_5 \\  h_6 \\ 
+    h_7 \\  h_8 
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+    423.36783285 \\  
+    634.41121124 \\
+    532.21137026 \\
+    651.37384045 \\
+    629.74648821 \\
+    922.77590777 \\
+    1055.2257708 \\
+    500.12373001 \\
+    396.51033661  \\
+    477.50689107 \\
+    706.07831964 \\
+    551.01161763 \\
+    406.40520364 \\
+    559.49293224 \\
+    409.23230851 \\
+    517.08635922 
+
+    \end{bmatrix},
+    \]
+
+    
+
+    The recovered H matrix is:
+    \[  
+    H= 
+    \begin{bmatrix} 
+    0.871993633 & -0.241168013 &  94.5905696 \\ 
+    -0.00314957574 & 0.656993197 &  372.706782 \\ 
+    -0.0000195512678 & -0.000351052095 & 1
+    \end{bmatrix}.
+    \]
+    
+  </p>
+
+<h3 style="text-align:center;">A.3: Warping </h3>
+  <p style="text-align:center;""> I manually warp the image using both nearest-neighbor and bilinear interpolation.</p>
+  <p> To warp the image, I use the following procedure: 
+    <ol>
+      <li>Define the corners of the unwarped image as (0,0,1), (width-1, 0,1), (0, height-1, 1), (width-1, height-1, 1)</li>
+      <li>Transform each corner according to H: H * c. These corners define the bounding box for the final image, so I then find the size of the rectangular box that contains these coordinates. This rectangular box represents the destination image.</li>
+      <li>Iterate over every coordinate pair (i,j) in the destination image. For each coordinate, </li>
+      <ol>
+        <li>Translate the coordinate by the minimum x and y values (found when calculating the bounding box) to ensure it is within the correct coordinate frame</li>
+        <li>Inverse-map the coordinate to the source image by calculating H_inverse * (i,j,1)</li>
+        <li>Interpolate the value and assign it to the destination image.</li>
+      </ol>
+    </ol>
+
+    
+    For nearest_neighbor interpolation, I round the inverse mapped coordinate to the nearest integer point and use that value in the destination image.
+    For bilinear interpolation, I find the nearest four coordinates (if the coordinate is on the edge, not all four neighbors will be valid coordinates: I remove those and re-adjust the weighting accordingly).
+    The four nearest neighbors are combined in a weighted average. </p>
+
+    <p style="text-align:center;">Here are the results of rectifying three images.</p>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/a3/guitar_rect_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">Original guitar image, with correspondences plotted on top.</figcaption>
+    </figure>
+  <figure>
+      <img src="images/a3/guitar_rect_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">Binary rectangle image, with correspondences plotted on top. </figcaption>
+    </figure>
+        <figure>
+      <img src="images/a3/guitar_nn_rect.jpg" alt="First image">
+      <figcaption class="small">Rectified guitar. Nearest-neighbor interpolation.</figcaption>
+    </figure>
+  <figure>
+      <img src="images/a3/guitar_bilinear_rect.jpg" alt="First image">
+      <figcaption class="small">Rectified guitar. Bilinear interpolation.</figcaption>
+    </figure>
+  </div>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/a3/map_rect_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">Original image (Bridal Trails trail map), with correspondences plotted on top.</figcaption>
+    </figure>
+  <figure>
+      <img src="images/a3/map_rect_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">Binary Bridal Trails map image, with correspondences plotted on top. </figcaption>
+    </figure>
+        <figure>
+      <img src="images/a3/map_nn_rect.jpg" alt="First image">
+      <figcaption class="small">Rectified Bridal Trails map. Nearest-neighbor interpolation.</figcaption>
+    </figure>
+  <figure>
+      <img src="images/a3/map_bilinear_rect.jpg" alt="First image">
+      <figcaption class="small">Rectified Bridal Trails map. Bilinear interpolation.</figcaption>
+    </figure>
+  </div>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/a3/rat_rect_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">Original image (squirrel poster in Earl Warren Hall), with correspondences plotted on top.</figcaption>
+    </figure>
+  <figure>
+      <img src="images/a3/rat_rect_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">Binary rectangle image, with correspondences plotted on top. </figcaption>
+    </figure>
+        <figure>
+      <img src="images/a3/rat_nn_rect.jpg" alt="First image">
+      <figcaption class="small"> Rectified squirrel. Nearest-neighbor interpolation.</figcaption>
+    </figure>
+  <figure>
+      <img src="images/a3/rat_bilinear_rect.jpg" alt="First image">
+      <figcaption class="small">Rectified squirrel. Bilinear interpolation.</figcaption>
+    </figure>
+  </div>
+
+
+    <p>Nearest-neighbor interpolation ran quicker than biliear interpolation. 
+      However, bilinear interpolation generated higher-quality images. This is most obvious on the Bridal Trails image, where the text is much cleaner.
+      The nearest-neighbor interpolation for the map resulted in jagged edges, which for small words make the text very difficult to read.
+    </p>
+
+    <div class="gallery">
+    <figure>
+      <img src="images/a3/map_text_zoom_nn.jpg" alt="First image">
+      <figcaption class="small">The nearest neighbor interpolation, which results in low-quality text and edges.</figcaption>
+    </figure>
+  <figure>
+      <img src="images/a3/map_text_zoom_bilinear.jpg" alt="First image">
+      <figcaption class="small">The bilinear interpolation. Although these sections are extremely zoomed in, the text and edges are cleaner. </figcaption>
+    </figure>
+  </div>
+
+
+  <h3 style="text-align:center;">A.4: Blending </h3>
+  <p style="text-align:center;"">After warping the image, I align and blend the images into a mosaic. I use the following procedure:</p>
+  <ol>
+    <li>Determine the size of the final mosaic. This is calculated from the extents of the fixed and warped image.</li>
+    <li>Place the fixed and warped image onto an all-zero image of the same size as the final mosaic. At this point, I have both the fixed and warped image aligned on their own individual mosaic-sized backdrops.</li>
+    <li>I blend the warped and fixed images via a two-layer Laplacian pyramid. I use a kernel size on the images of 10, and blur the mask with a  kernel size of 30. The standard deviations are the kernel size divided by 6.</li>
+  </ol>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/trex_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for T. Rex straight forward </figcaption>
+    </figure>
+  <figure>
+      <img src="images/trex_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for T. Rex tilted up </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure>
+      <img src="images/a4/trex_fixed.jpg" alt="First image">
+      <figcaption class="small">Fixed T. Rex </figcaption>
+    </figure>
+  <figure>
+      <img src="images/a4/trex_warped.jpg" alt="First image">
+      <figcaption class="small">Warped T. Rex </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="large">
+      <img src="images/a4/trex_blended.jpg" alt="First image">
+      <figcaption class="small">Blended T.Rex </figcaption>
+    </figure>
+  </div>
+  <br><br>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/sf_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for SF building straight forward </figcaption>
+    </figure>
+  <figure>
+      <img src="images/sf_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for SF building tilted up </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure>
+      <img src="images/a4/sf_fixed.jpg" alt="First image">
+      <figcaption class="small">Fixed SF building </figcaption>
+    </figure>
+  <figure>
+      <img src="images/a4/sf_warped.jpg" alt="First image">
+      <figcaption class="small">Warped SF building </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="large">
+      <img src="images/a4/sf_blended.jpg" alt="First image">
+      <figcaption class="small">Blended SF building </figcaption>
+    </figure>
+  </div>
+  <br><br>
+
+  <div class="gallery">
+    <figure>
+      <img src="images/mining_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for Hearst Mining pointed left </figcaption>
+    </figure>
+  <figure>
+      <img src="images/mining_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for Hearst Mining pointed right </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure>
+      <img src="images/a4/mining_fixed.jpg" alt="First image">
+      <figcaption class="small">Fixed Hearst Mining </figcaption>
+    </figure>
+  <figure>
+      <img src="images/a4/mining_warped.jpg" alt="First image">
+      <figcaption class="small">Warped Hearst Mining </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="large">
+      <img src="images/a4/mining_blended.jpg" alt="First image">
+      <figcaption class="small">Blended Hearst Mining </figcaption>
+    </figure>
+  </div>
+<br><br>
+  <div class="gallery">
+    <figure>
+      <img src="images/campanile_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for the Campanile straight forward </figcaption>
+    </figure>
+  <figure>
+      <img src="images/campanile_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">Correspondences for the Campanile tilted up </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure>
+      <img src="images/a4/campanile_fixed.jpg" alt="First image">
+      <figcaption class="small">Fixed Campanile </figcaption>
+    </figure>
+  <figure>
+      <img src="images/a4/campanile_warped.jpg" alt="First image">
+      <figcaption class="small">Warped Campanile </figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="large">
+      <img src="images/a4/campanile_blended.jpg" alt="First image">
+      <figcaption class="small">Blended Campanile </figcaption>
+    </figure>
+  </div>
+
+
+
+
+  <h3 style="text-align:center;">A.5: Bells and Whistles: Cylindrical Projection </h3>
+  <p style="text-align:center;"">I project the mosaic onto a cylinder rather than a plane. Although the main procedure for warping is the same, there are a few changes.</p>
+  <ol>
+    <li>The inverse-map is now two stages. Previously, I only needed to inverse map the destination image coordinate to the source image via H_inverse. 
+      Now, the inverse map is 1) destination coordinate through an inverse cylindrical projection, 2) the inverse cylindrical projection to the source image via H_inverse.
+    </li>
+    <li>I need to transform the fixed image as well, or the images will not align. I inverse-map the original image using the same inverse cylindrical projection.
+    </li>
+    <li>When performing the inverse map for both images, I shift each coordinate about the center of the final mosaic. This ensures that both images are transformed about the same cylinder. </li>
+  </ol>
+  <p> I use nearest-neighbor interpolation for the speed benefits. I blend the images using the same two-layer Laplacian pyramid as previous.</p>
+  <p> The inverse cylindrical projection is as follows:</p>
+
+  $$
+  \begin{aligned}
+  \text{center}_y,\, \text{center}_x &= \tfrac{1}{2} i_{\text{full\_mosaic\_size}},\, \tfrac{1}{2} j_{\text{full\_mosaic\_size}} \\
+  x' &= \text{dest\_coord}_x - \text{center}_x \\
+  y' &= \text{dest\_coord}_y - \text{center}_y \\
+  x &= f \tan\!\left(\frac{x'}{s}\right) \\
+  y &= \frac{y'}{s} \sqrt{x^2 + f^2} \\
+  \text{inverse\_coord} &= [\,x + \text{center}_x,\, y + \text{center}_y,\, 1\,]
+  \end{aligned}
+  $$
+
+  <p>I chose to set s = f to minimize distortion. I also chose an f value of 1000 based on aesthetics.</p>
+
+  <div class="gallery">
+    <figure class="large">
+      <img src="images/trex_cylinder.jpg" alt="First image">
+      <figcaption class="small">T.Rex cylinder projection </figcaption>
+    </figure>
+  </div>
+
+<br><br>
+  <p style="text-align:center;"> Hey, thanks for reaching the bottom :) </p>
+
+</div>
+
+
+</body>
+</html>
