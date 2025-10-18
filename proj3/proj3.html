@@ -60,7 +60,22 @@
     }
     /* Small version */
     figure.small img {
-      height: 200px;
+      height: auto;
+      width: 400px;
+      border-radius: 0px;
+      display: block;
+    }
+    /* tiny version */
+    figure.tiny img {
+      height: auto;
+      width: 150px;
+      border-radius: 0px;
+      display: block;
+    }
+
+      /* Small version */
+      figure.heightconstrain img {
+      height: 300px;
       width: auto;
       border-radius: 0px;
       display: block;
@@ -68,7 +83,7 @@
 
     /* Large version */
     figure.large img {
-      height: 400px;
+      height: 500px;
       width: auto;
       border-radius: 0px;
       display: block;
@@ -110,7 +125,7 @@
 <div class="frame">
 
   
-<h1 style="text-align:center;">Project 3:  Panorama Stitching </h1>
+<h1 style="text-align:center;color:#8061DF">Project 3:  Panorama Stitching </h1>
 
 <p style="text-align:center;"> In this project, I explore homographies, warping, and blending to stitch together images in a panorama.
 
@@ -118,7 +133,7 @@
   <!-- <p>Math can be inline like \(2^{2x}=4\), or displayed like:</p> -->
 
 
-<h2 style="text-align:center;">Part 1: Manual Stitching </h2>
+<h2 style="text-align:center;color:#8061DF"=>Part 1: Manual Stitching </h2>
 
 <h3 style="text-align:center;">A.1: Collecting Images </h3>
   <p style="text-align:center;""> I shoot two or more photographs that differ from each other via a projective transformation. I fixed the Center of Projection (COP) and rotated my camera while shooting.
@@ -126,7 +141,7 @@
 
   <p style="text-align:center;"">Hearst Mining Memorial Building, Floor 3</p>
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/mining_1.jpeg" alt="First image">
       <figcaption class="small">Left </figcaption>
     </figure>
@@ -134,7 +149,7 @@
       <img src="images/mining_2.jpeg" alt="First image">
       <figcaption class="small">Center </figcaption>
     </figure> -->
-    <figure>
+    <figure class="small">
       <img src="images/mining_3.jpeg" alt="First image">
       <figcaption class="small">Right </figcaption>
     </figure>
@@ -143,11 +158,11 @@
   <p style="text-align:center;"">A San Francisco building, near Grace Cathedral</p>
 
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/sf_2.jpeg" alt="First image">
       <figcaption class="small">Straight forward </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/sf_1.jpeg" alt="First image">
       <figcaption class="small">Tilted up </figcaption>
     </figure>
@@ -156,11 +171,11 @@
   <p style="text-align:center;"">The T. Rex in the Valley Life Sciences Building </p>
 
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/trex_1.jpeg" alt="First image">
       <figcaption class="small">Straight forward </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/trex_2.jpeg" alt="First image">
       <figcaption class="small">Tilted up </figcaption>
     </figure>
@@ -169,11 +184,11 @@
 <p style="text-align:center;"">The Campanile </p>
 
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/campanile_1.jpeg" alt="First image">
       <figcaption class="small">Straight forward </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/campanile_2.jpeg" alt="First image">
       <figcaption class="small">Tilted up </figcaption>
     </figure>
@@ -229,37 +244,41 @@
     The system is overdefined: 4 correspondences are required to get a solution, but I provide 8 to reduce noise and improve stability.
       
     <div class="gallery">
-      <figure>
-        <img src="images/trex_1_correspondences.jpg" alt="First image">
+      <figure class="small">
+        <img src="images/trex_2_correspondences.jpg" alt="First image">
         <figcaption class="small">Correspondences on T.Rex shot straight forward </figcaption>
       </figure>
-    <figure>
-        <img src="images/trex_2_correspondences.jpg" alt="First image">
+    <figure class="small">
+        <img src="images/trex_1_correspondences.jpg" alt="First image">
         <figcaption class="small">Correspondences on T.Rex shot tilted up </figcaption>
       </figure>
     </div>
 
-    The system of equations is as follows. If Ah = b, 
+    <br>
+    <p style="text-align:center;">The system of equations is as follows, with all values rounded to 3 decimal places for simplicity. If Ah = b, </p>
 
     \[ 
     \begin{bmatrix}
-    403.578 &  292.331 &  1.0 & 0.0 &  0.0 &  0.0 & -170861.985 & -123763.763 \\
-    0.0 &  0.0 &  0.0 & 403.578099 &  292.331522 &  1.0 & -256034.470 & -185458.395  \\
-    513.835189 &  310.707704 &  1.0 & 0.0 &  0.0 &  0.0 & -273468.930 & -165362.173  \\
-    0.0 &  0.0 &  0.0 & 513.835189 &  310.707704 &  1.0 &-334698.800 & -202386.870  \\
-    618.438069 &  551.011618 &  1.0 & 0.0 &  0.0 &  0.0 &-389459.202 & -346997.631  \\
-    0.0 &  0.0 &  0.0 & 618.438069 &  551.011618 &  1.0 &-570679.750 & -508460.246  \\
-    1055.22577 &  143.908517 &  1.0 & 0.0 &  0.0 &  0.0 &-1113501.43 & -151855.975  \\
-    0.0 &  0.0 &  0.0 & 1055.22577 &  143.908517 &  1.0 &-527743.449 & -71972.0641  \\
-    358.344421 &  124.118783 &  1.0 & 0.0 &  0.0 &  0.0 &-142087.267 & -49214.3803  \\
-    0.0 &  0.0 &  0.0 & 358.344421 &  124.118783 &  1.0 &-171111.930 & -59267.5740  \\
-    689.115690 &  204.691271 &  1.0 & 0.0 &  0.0 &  0.0 &-48656.9649 & -144528.069  \\
-    0.0 &  0.0 &  0.0 & 689.115690 &  2.0.4691271 &  1.0 &-379710.751 & -112787.269  \\
-    378.134155 &  214.586138 &  1.0 & 0.0 &  0.0 &  0.0 &-153675.688 & -87208.9233  \\
-    0.0 &  0.0 &  0.0 & 378.134155 &  214.586138 &  1.0 &-211563.387 & -120059.428  \\
-    376.720603 &  169.352460 &  1.0 & 0.0 &  0.0 &  0.0 &-154166.242 & -69304.4983  \\
-    0.0 &  0.0 &  0.0 & 376.720603 &  169.352460 &  1.0 &-194797.085 & -87569.8472 
-    \end{bmatrix} 
+    421.954 & 635.825 & 1.000 & 0.000 & 0.000 & 0.000 & -169695.052 & -255706.178 \\
+   0.000 & 0.000 & 0.000 & 421.954 & 635.825 & 1.000 & -123946.992 & -186770.393\\
+   530.798 & 652.787 & 1.000 & 0.000 & 0.000 & 0.000 & -272742.597 &-335425.133\\
+   0.000 & 0.000 & 0.000 & 530.798 & 652.787 & 1.000 & -164922.971 &-202826.072\\
+   628.333 & 922.776 & 1.000 & 0.000 & 0.000 & 0.000 & -387696.826 & -569375.358\\
+   0.000 & 0.000 & 0.000 & 628.333 & 922.776 & 1.000 & -347106.929 &-509764.638\\
+   404.992 & 559.493 & 1.000 & 0.000 & 0.000 & 0.000 & -152568.699 &-210772.515\\
+   0.000 & 0.000 & 0.000 & 404.992 & 559.493 & 1.000 & -86333.118 & -119268.555\\
+   315.938 & 545.357 & 1.000 & 0.000 & 0.000 & 0.000 & -87758.666 & -151484.981\\
+   0.000 & 0.000 & 0.000 & 315.938 & 545.357 & 1.000 & -62883.341 & -108546.336\\
+   1056.639 & 500.124 & 1.000 & 0.000 & 0.000 & 0.000 & -1114993.044 & -527743.449\\
+   0.000 & 0.000 & 0.000 & 1056.639 & 500.124 & 1.000 & -152059.398 & -71972.064\\
+   421.954 & 491.642 & 1.000 & 0.000 & 0.000 & 0.000 & -162537.598 & -189381.601\\
+   0.000 & 0.000 & 0.000 & 421.954 & 491.642 & 1.000 & -58933.451 & -68666.644\\
+   198.613 & 826.654 & 1.000 & 0.000 & 0.000 & 0.000 & -41131.621 & -171195.411\\
+   0.000 & 0.000 & 0.000 & 198.613 & 826.654 & 1.000 & -94558.324 & -393564.626\\
+   \end{bmatrix} 
+
+
+
     \begin{bmatrix} 
     h_1 \\  h_2 \\  h_3 \\ 
     h_4 \\ h_5 \\  h_6 \\ 
@@ -267,23 +286,22 @@
     \end{bmatrix}
     =
     \begin{bmatrix}
-    423.36783285 \\  
-    634.41121124 \\
-    532.21137026 \\
-    651.37384045 \\
-    629.74648821 \\
-    922.77590777 \\
-    1055.2257708 \\
-    500.12373001 \\
-    396.51033661  \\
-    477.50689107 \\
-    706.07831964 \\
-    551.01161763 \\
-    406.40520364 \\
-    559.49293224 \\
-    409.23230851 \\
-    517.08635922 
-
+    402.165 \\
+    293.745\\
+    513.835\\
+    310.708\\
+    617.025\\
+    552.425\\
+    376.721\\
+    213.173\\
+    277.772\\
+    199.037\\
+    1055.226\\
+    143.909\\
+    385.202\\
+    139.668\\
+    207.094\\
+    476.093
     \end{bmatrix},
     \]
 
@@ -293,9 +311,9 @@
     \[  
     H= 
     \begin{bmatrix} 
-    0.871993633 & -0.241168013 &  94.5905696 \\ 
-    -0.00314957574 & 0.656993197 &  372.706782 \\ 
-    -0.0000195512678 & -0.000351052095 & 1
+    1.392& 0.353& -270.015\\
+    -0.001& 1.521& -570.492\\
+    0.000& 0.001& 1.000
     \end{bmatrix}.
     \]
     
@@ -307,10 +325,10 @@
     <ol>
       <li>Define the corners of the unwarped image as (0,0,1), (width-1, 0,1), (0, height-1, 1), (width-1, height-1, 1)</li>
       <li>Transform each corner according to H: H * c. These corners define the bounding box for the final image, so I then find the size of the rectangular box that contains these coordinates. This rectangular box represents the destination image.</li>
-      <li>Iterate over every coordinate pair (i,j) in the destination image. For each coordinate, </li>
+      <li>For every coordinate pair (x,y) in the destination image, </li>
       <ol>
         <li>Translate the coordinate by the minimum x and y values (found when calculating the bounding box) to ensure it is within the correct coordinate frame</li>
-        <li>Inverse-map the coordinate to the source image by calculating H_inverse * (i,j,1)</li>
+        <li>Inverse-map the coordinate to the source image by calculating H_inverse * (x,y,1)</li>
         <li>Interpolate the value and assign it to the destination image.</li>
       </ol>
     </ol>
@@ -320,67 +338,61 @@
     For bilinear interpolation, I find the nearest four coordinates (if the coordinate is on the edge, not all four neighbors will be valid coordinates: I remove those and re-adjust the weighting accordingly).
     The four nearest neighbors are combined in a weighted average. </p>
 
-    <p style="text-align:center;">Here are the results of rectifying three images.</p>
+    <p style="text-align:center;">Here are the results of rectifying three images. All images were rectified to the same reference rectagle, with the following correspondences:</p>
 
+    <div class="gallery">
+    <figure class="heightconstrain">
+        <img src="images/a3/guitar_rect_2_correspondences.jpg" alt="First image">
+        <figcaption class="small">Binary rectangle reference, with correspondences plotted on top. </figcaption>
+    </div>
+  
   <div class="gallery">
-    <figure>
+    <figure class="heightconstrain">
       <img src="images/a3/guitar_rect_1_correspondences.jpg" alt="First image">
       <figcaption class="small">Original guitar image, with correspondences plotted on top.</figcaption>
     </figure>
-  <figure>
-      <img src="images/a3/guitar_rect_2_correspondences.jpg" alt="First image">
-      <figcaption class="small">Binary rectangle image, with correspondences plotted on top. </figcaption>
-    </figure>
-        <figure>
+        <figure class="heightconstrain">
       <img src="images/a3/guitar_nn_rect.jpg" alt="First image">
       <figcaption class="small">Rectified guitar. Nearest-neighbor interpolation.</figcaption>
     </figure>
-  <figure>
+  <figure class="heightconstrain">
       <img src="images/a3/guitar_bilinear_rect.jpg" alt="First image">
       <figcaption class="small">Rectified guitar. Bilinear interpolation.</figcaption>
     </figure>
   </div>
 
   <div class="gallery">
-    <figure>
+    <figure class="heightconstrain">
       <img src="images/a3/map_rect_1_correspondences.jpg" alt="First image">
       <figcaption class="small">Original image (Bridal Trails trail map), with correspondences plotted on top.</figcaption>
     </figure>
-  <figure>
-      <img src="images/a3/map_rect_2_correspondences.jpg" alt="First image">
-      <figcaption class="small">Binary Bridal Trails map image, with correspondences plotted on top. </figcaption>
-    </figure>
-        <figure>
+        <figure class="heightconstrain">
       <img src="images/a3/map_nn_rect.jpg" alt="First image">
       <figcaption class="small">Rectified Bridal Trails map. Nearest-neighbor interpolation.</figcaption>
     </figure>
-  <figure>
+  <figure class="heightconstrain">
       <img src="images/a3/map_bilinear_rect.jpg" alt="First image">
       <figcaption class="small">Rectified Bridal Trails map. Bilinear interpolation.</figcaption>
     </figure>
   </div>
 
   <div class="gallery">
-    <figure>
+    <figure class="heightconstrain">
       <img src="images/a3/rat_rect_1_correspondences.jpg" alt="First image">
       <figcaption class="small">Original image (squirrel poster in Earl Warren Hall), with correspondences plotted on top.</figcaption>
     </figure>
-  <figure>
-      <img src="images/a3/rat_rect_2_correspondences.jpg" alt="First image">
-      <figcaption class="small">Binary rectangle image, with correspondences plotted on top. </figcaption>
-    </figure>
-        <figure>
+        <figure class="heightconstrain">
       <img src="images/a3/rat_nn_rect.jpg" alt="First image">
       <figcaption class="small"> Rectified squirrel. Nearest-neighbor interpolation.</figcaption>
     </figure>
-  <figure>
+  <figure class="heightconstrain">
       <img src="images/a3/rat_bilinear_rect.jpg" alt="First image">
       <figcaption class="small">Rectified squirrel. Bilinear interpolation.</figcaption>
     </figure>
   </div>
 
 
-    <p>Nearest-neighbor interpolation ran quicker than biliear interpolation. 
+    <p>Nearest-neighbor interpolation ran faster than biliear interpolation (almost twice as fast). 
       However, bilinear interpolation generated higher-quality images. This is most obvious on the Bridal Trails image, where the text is much cleaner.
       The nearest-neighbor interpolation for the map resulted in jagged edges, which for small words make the text very difficult to read.
     </p>
@@ -402,25 +414,26 @@
   <ol>
     <li>Determine the size of the final mosaic. This is calculated from the extents of the fixed and warped image.</li>
     <li>Place the fixed and warped image onto an all-zero image of the same size as the final mosaic. At this point, I have both the fixed and warped image aligned on their own individual mosaic-sized backdrops.</li>
-    <li>I blend the warped and fixed images via a two-layer Laplacian pyramid. I use a kernel size on the images of 10, and blur the mask with a  kernel size of 30. The standard deviations are the kernel size divided by 6.</li>
+    <li> Create a blending mask using the alpha channel from the warped image. </li>
+    <li>To reduce edge artifacts, I blend the warped and fixed images via a two-layer Laplacian pyramid. I use a kernel size on the images of 10, and blur the mask with a kernel size of 30. The standard deviations are the kernel size divided by 6.</li>
   </ol>
 
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/trex_1_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for T. Rex straight forward </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/trex_2_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for T. Rex tilted up </figcaption>
     </figure>
   </div>
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/a4/trex_fixed.jpg" alt="First image">
       <figcaption class="small">Fixed T. Rex </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/a4/trex_warped.jpg" alt="First image">
       <figcaption class="small">Warped T. Rex </figcaption>
     </figure>
@@ -434,21 +447,21 @@
   <br><br>
 
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/sf_1_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for SF building straight forward </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/sf_2_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for SF building tilted up </figcaption>
     </figure>
   </div>
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/a4/sf_fixed.jpg" alt="First image">
       <figcaption class="small">Fixed SF building </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/a4/sf_warped.jpg" alt="First image">
       <figcaption class="small">Warped SF building </figcaption>
     </figure>
@@ -462,21 +475,21 @@
   <br><br>
 
   <div class="gallery">
-    <figure>
-      <img src="images/mining_1_correspondences.jpg" alt="First image">
+    <figure class="small">
+      <img src="images/mining_2_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for Hearst Mining pointed left </figcaption>
     </figure>
-  <figure>
-      <img src="images/mining_2_correspondences.jpg" alt="First image">
+  <figure class="small">
+      <img src="images/mining_1_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for Hearst Mining pointed right </figcaption>
     </figure>
   </div>
   <div class="gallery">
-    <figure>
+    <figure class="small">
       <img src="images/a4/mining_fixed.jpg" alt="First image">
       <figcaption class="small">Fixed Hearst Mining </figcaption>
     </figure>
-  <figure>
+  <figure class="small">
       <img src="images/a4/mining_warped.jpg" alt="First image">
       <figcaption class="small">Warped Hearst Mining </figcaption>
     </figure>
@@ -489,21 +502,21 @@
   </div>
 <br><br>
   <div class="gallery">
-    <figure>
-      <img src="images/campanile_1_correspondences.jpg" alt="First image">
+    <figure class="heightconstrain">
+      <img src="images/campanile_2_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for the Campanile straight forward </figcaption>
     </figure>
-  <figure>
-      <img src="images/campanile_2_correspondences.jpg" alt="First image">
+  <figure class="heightconstrain">
+      <img src="images/campanile_1_correspondences.jpg" alt="First image">
       <figcaption class="small">Correspondences for the Campanile tilted up </figcaption>
     </figure>
   </div>
   <div class="gallery">
-    <figure>
+    <figure class="heightconstrain">
       <img src="images/a4/campanile_fixed.jpg" alt="First image">
       <figcaption class="small">Fixed Campanile </figcaption>
     </figure>
-  <figure>
+  <figure class="heightconstrain">
       <img src="images/a4/campanile_warped.jpg" alt="First image">
       <figcaption class="small">Warped Campanile </figcaption>
     </figure>
@@ -524,12 +537,12 @@
     <li>The inverse-map is now two stages. Previously, I only needed to inverse map the destination image coordinate to the source image via H_inverse. 
       Now, the inverse map is 1) destination coordinate through an inverse cylindrical projection, 2) the inverse cylindrical projection to the source image via H_inverse.
     </li>
-    <li>I need to transform the fixed image as well, or the images will not align. I inverse-map the original image using the same inverse cylindrical projection.
+    <li>I need to transform the fixed image as well, or the images will not align. I inverse-map the fixed image using the same inverse cylindrical projection.
     </li>
     <li>When performing the inverse map for both images, I shift each coordinate about the center of the final mosaic. This ensures that both images are transformed about the same cylinder. </li>
   </ol>
   <p> I use nearest-neighbor interpolation for the speed benefits. I blend the images using the same two-layer Laplacian pyramid as previous.</p>
-  <p> The inverse cylindrical projection is as follows:</p>
+  <p style="text-align:center;"> The inverse cylindrical projection is as follows:</p>
 
   $$
   \begin{aligned}
@@ -542,14 +555,440 @@
   \end{aligned}
   $$
 
-  <p>I chose to set s = f to minimize distortion. I also chose an f value of 1000 based on aesthetics.</p>
+  <p style="text-align:center;">I chose to set s = f to minimize distortion. I also chose an f value of 1000 based on aesthetics.</p>
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="images/a5/campusfish_ex_cylinder_20_try_again_1.jpg" alt="First image">
+      <figcaption class="small">Fixed image, cylindrically projected and placed </figcaption>
+    </figure>
+    <figure class="small">
+      <img src="images/a5/campusfish_ex_cylinder_20_try_again_2.jpg" alt="First image">
+      <figcaption class="small">Warped image, cylindrically projected and placed </figcaption>
+    </figure>
+    <figure class="small">
+      <img src="images/a5/campusfish_ex_cylinder_try_again.jpg" alt="First image">
+      <figcaption class="small">Blended mosaic </figcaption>
+    </figure>
+  </div>
+
+
+
+
+<!-- ------------------------------------------------------------- -->
+<!-- ------------------------------------------------------------- -->
+<!-- ------------------------------------------------------------- -->
+<!-- ------------------------------------------------------------- -->
+<!-- ------------------------------------------------------------- -->
+<!-- ------------------------------------------------------------- -->
+
+<br>
+<hr>
+<br>
+
+<h2 style="text-align:center;color:#8061DF"=>Part 2: Automatic Stitching </h2>
+
+<p style="text-align:center;">This section closely follows the implementation of Brown et. al in "Multi-Image Matching using Multi-Scale Oriented Patches."</p>
+  <h3 style="text-align:center;">B.1: Harris Corner Detection </h3>
+
+  <p>The Harris Corner Detector looks for areas within the image that would exhibit large changes in intensity given movement of a sliding window in any direction.
+    These areas are identified by using the second moment matrix (M) to look at the gradients in each direction within the sliding window. 
+    The "corner response" of the area is the determinant of M divided by the trace of M (the sum of the squared diagonal elements).
+  </p>
+  <p>For this section, I used the provided harris.py code (which in turn uses skimage's corner_harris function) to identify all corners found in an image.</p>
+
+  <div class="gallery">
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_harris_map.jpg" alt="First image">
+      <figcaption class="small">Harris response map </figcaption>
+    </figure>
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_harris_all.jpg" alt="First image">
+      <figcaption class="small">All 29,433 detected Harris corners. Opacity set at 0.5 for visibility. </figcaption>
+    </figure>
+  </div>
+  <br>
+  <p>Unfortunately this is way too many corners. 
+    I implement Adaptive Non-Maximum Suppression, as described by Brown et.al. I normalize the Harris response map first to range between (0,1).
+    The ANMS procedure is as follows. For each detected Harris corner:
+    <ol>
+      <li>Calculate the threshold value. I set this to be 1.1 * the Harris response value for the corner. </li>
+      <li>Compute the Euclidean distance between the corner and all other detected corners.</li>
+      <li>Find the closest other corner with a Harris response above the previously calculated threshold. 
+        The distance between the corner and the closest above-threshold corner is saved as that corner's "radius".
+        If there is no corner in the image with a Harris response above the threshold, set the corner's radius to be infinity.
+      </li>
+      <li>Sort the computed radii in decreasing order. Locally stronger corners are ranked higher and have larger radii (they suppress more surrounding points). Locally weaker corners are ranked lower and have smaller radii (they suppress fewer points).</li>
+      <li>I restrict the output to the top 100 points with the largest radii.</li>
+    </ol>
+  </p>
+
+  <p>This is what that looks like on the original image, and on the Harris response map. 
+    The points returned fron ANMS are spread evenly throughout the image, but distributed on areas of locally high response.
+  </p>
+
+  <div class="gallery">
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_ransacharris_anms_fixed.jpg" alt="First image">
+      <figcaption class="small">ANMS corners on original image. </figcaption>
+    </figure>
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_harris_map_points.jpg" alt="First image">
+      <figcaption class="small">ANMS corners on Harris response map. </figcaption>
+    </figure>
+  </div>
+
+ 
+  <h3 style="text-align:center;">B.2: Feature Descriptor Extraction </h3>
+    <p>In this section, I extract patches from each detected corner (post-ANMS).
+      Each patch begins as 40x40 pixels surrounding its designated corner. 
+      However, although the patch will represent its corner, it will also be overly sensitive to its single specific location.
+      To allow for better matching later on, I sample the patch down to 8x8, with a spacing of 5 pixels between each sample.
+      I also normalize the patches to have a mean of 0 and a variance of 1.
+    </p>
+
+    <p>Here are some examples of extracted feature descriptors from the T.Rex image, re-normalized to range between (0,1) for display purposes.</p>
+
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images_b/patches/patches_0jpg.png" alt="First image">
+    </figure>
+    <figure class="tiny">
+      <img src="images_b/patches/patches_1jpg.png" alt="First image">
+    </figure>
+        <figure class="tiny">
+      <img src="images_b/patches/patches_2jpg.png" alt="First image">
+    </figure>
+    <figure class="tiny">
+      <img src="images_b/patches/patches_3jpg.png" alt="First image">
+    </figure>
+    <figure class="tiny">
+      <img src="images_b/patches/patches_4jpg.png" alt="First image">
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images_b/patches/patches_5jpg.png" alt="First image">
+    </figure>
+    <figure class="tiny">
+      <img src="images_b/patches/patches_6jpg.png" alt="First image">
+    </figure>
+        <figure class="tiny">
+      <img src="images_b/patches/patches_7jpg.png" alt="First image">
+    </figure>
+    <figure class="tiny">
+      <img src="images_b/patches/patches_8jpg.png" alt="First image">
+    </figure>
+    <figure class="tiny">
+      <img src="images_b/patches/patches_9jpg.png" alt="First image">
+    </figure>
+  </div>
+
+
+<h3 style="text-align:center;">B.3: Feature Matching </h3>
+    <p> To match the patches between images, I use a modified Lowe score.
+      For each patch, I calculate its two nearest neighbors using the Euclidean distance between that patch and all detected patches in the other image. I used DIST2(X,C) as provided in the harris.py file.
+      The modified Lowe score is each patch's nearest neighbor divided by the average second-neighbor distance among all patches in that image. I used a threshold of 0.5.
+      Brown et al. found that this method, which compares the closest neighbor to the average distance of all second nearest neighbors, led to improved outlier rejection.
+      <br>
+      I also remove duplicates from the matches after this process is complete, as multiple patches can map to the same patch (many to one). This method only keeps the first match to a given patch in the second image.
+      I found that removing duplicates helped greatly with the RANSAC process later on, as multiple matches to the same patch is not physically consistent and caused issues when solving the homography equations via least-squares. 
+    </p>
+
+    <p style="text-align:center;"=> Here are some matched patches across the two images. </p>
+    <p style="text-align:center;"> From the T-Rex shot straight forward: </p>
+    <div class="gallery">
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_0.png" alt="First image">
+      </figure>
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_1.png" alt="First image">
+      </figure>
+          <figure class="tiny">
+        <img src="images_b/matches/patch_matches_2.png" alt="First image">
+      </figure>
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_3.png" alt="First image">
+      </figure>
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_4.png" alt="First image">
+      </figure>
+    </div>
+    <p style="text-align:center;"> From the T-Rex shot tilted upwards: </p>
+    <div class="gallery">
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_b_5.png" alt="First image">
+      </figure>
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_b_6.png" alt="First image">
+      </figure>
+          <figure class="tiny">
+        <img src="images_b/matches/patch_matches_b_7.png" alt="First image">
+      </figure>
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_b_8.png" alt="First image">
+      </figure>
+      <figure class="tiny">
+        <img src="images_b/matches/patch_matches_b_9.png" alt="First image">
+      </figure>
+    </div>
+
+      <p> Here are the resulting matched corners across the two images. There are a few outliers, one of which is the top right red point in the left image, which allegedly maps to the bottom right red point in the right image.</p>
+ <div class="gallery">
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_ransacmatches.jpg_correspondences_1.jpg" alt="First image">
+      <figcaption class="small">ANMS corners on original image. </figcaption>
+    </figure>
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_ransacmatches.jpg_correspondences_2.jpg" alt="First image">
+      <figcaption class="small">ANMS corners on Harris response map. </figcaption>
+ 
+  </div>
+
+  <h3 style="text-align:center;">B.4: RANSAC </h3>
+  <p>I calculate the homography between the two images using a 100-iteration RANSAC loop. The previous parts yielded several point correspondences, but in each case there was at least one outlier which was not a true correspondence.
+    RANSAC relies on the detected point correspondences being mostly correct, with non-true correspondences being the minority. Therefore, the true homography transformation would capture "most" of the detected correspondences.
+    For each iteration:
+    <ol>
+      <li>I sample 4 point correspondences randomly from the coordinates that had matched patches. </li>
+      <li> From those 4 correspondences, I calculate the homography matrix using the same equations discussed in part A.</li>
+      <li> I transform all of the detected point correspondences in the first image according to the computed homography matrix. If the transformed point is within 5 pixels of a detected point in the second image, I count it as an inlier.</li>
+      <li> I count the total number of inliers. The best homography matrix yields the highest number of inliers.</li>
+    </ol> 
+  </p>
+
+  <p  style="text-align:center;"> Here are some auto-stitched mosaics from using RANSAC to calculate the homography matrix, using the same blending code as part A. 
+    Note that the part A images may seem uniformly mildly blurrier across the entire image - this is due to DPI differences when exporting from matplotlib vs using cv2.imwrite. 
+  However, the automatic stitching did produce better warps. </p>
+
+<!-- mosaic 1 -->
+<p style="text-align:center;"> Valley Life Sciences T. Rex</p>
+
+  <div class="gallery">
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_2_correspondences.jpg" alt="First image">
+      <figcaption class="small">The 4 corners selected from RANSAC that maximized the inlier count: fixed image.</figcaption>
+    </figure>
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_1_correspondences.jpg" alt="First image">
+      <figcaption class="small">The 4 corners selected from RANSAC that maximized the inlier count: image to warp.</figcaption>
+    </figure>
+
+  </div>
+    <div class="gallery">
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_ransacfixed.jpg" alt="First image">
+      <figcaption class="small">Fixed</figcaption>
+    </figure>
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_ransacwarped.jpg" alt="First image">
+      <figcaption class="small">Warped</figcaption>
+    </figure>
+
+  </div>
+    <div class="gallery">
+    <figure class="large">
+      <img src="images_b/trex/trex_ransac_blend_ransac.jpg" alt="First image">
+      <figcaption class="small">Automatically stitched </figcaption>
+    </figure>
+  </div>
+
+  <p style="text-align:center;"> For method comparison</p>
+
+  <div class="gallery">
+    <figure class="heightconstrain">
+      <img src="images_b/trex/trex_ransac_blend_ransac.jpg" alt="First image">
+      <figcaption class="small">Automatically stitched. Note the pole in the bottom left is better aligned than in the right image. </figcaption>
+    </figure>
+    <figure class="heightconstrain">
+      <img src="images/a4/trex_blended.jpg" alt="First image">
+      <figcaption class="small">Results from part A, manually stitched </figcaption>
+    </figure>
+  </div>
+
+<br><br>
+<p style="text-align:center;">  SF building near Grace Cathedral</p>
+
+<!-- mosaic 2 -->
+
+<div class="gallery">
+  <figure class="heightconstrain">
+    <img src="images_b/sf/sf_ransacselected_points_fixed.jpg" alt="First image">
+    <figcaption class="small">The 4 corners selected from RANSAC that maximized the inlier count: fixed image. </figcaption>
+  </figure>
+  <figure class="heightconstrain">
+    <img src="images_b/sf/sf_ransacselected_points_warped.jpg" alt="First image">
+    <figcaption class="small">The 4 corners selected from RANSAC that maximized the inlier count: image to warp. </figcaption>
+  </figure>
+
+</div>
+  <div class="gallery">
+  <figure class="heightconstrain">
+    <img src="images_b/sf/sf_ransacfixed.jpg" alt="First image">
+    <figcaption class="small">Fixed</figcaption>
+  </figure>
+
+  </figure>
+  <figure class="heightconstrain">
+    <img src="images_b/sf/sf_ransacwarped.jpg" alt="First image">
+    <figcaption class="small">Warped</figcaption>
+  </figure>
+
+</div>
+  <div class="gallery">
+  <figure class="large">
+    <img src="images_b/sf/sf_ransac_blend_ransac.jpg" alt="First image">
+    <figcaption class="small">Automatically stitched </figcaption>
+  </figure>
+</div>
+
+<p style="text-align:center;"> For method comparison</p>
+
+<div class="gallery">
+  <figure class="heightconstrain">
+    <img src="images_b/sf/sf_ransac_blend_ransac.jpg" alt="First image">
+    <figcaption class="small">Automatically stitched </figcaption>
+  </figure>
+  <figure class="heightconstrain">
+    <img src="images/a4/sf_blended.jpg" alt="First image">
+    <figcaption class="small">Results from part A, manually stitched </figcaption>
+  </figure>
+</div>
+
+<br><br>
+
+<!-- mosaic 3 -->
+<p style="text-align:center;"> Hearst Mining Memorial Building</p>
+
+
+<div class="gallery">
+  <figure class="heightconstrain">
+    <img src="images_b/mining/mining_ransacselected_points_fixed.jpg" alt="First image">
+    <figcaption class="small">The 4 corners selected from RANSAC that maximized the inlier count: fixed image. </figcaption>
+  </figure>
+  <figure class="heightconstrain">
+    <img src="images_b/mining/mining_ransacselected_points_warped.jpg" alt="First image">
+    <figcaption class="small">The 4 corners selected from RANSAC that maximized the inlier count: image to warp.</figcaption>
+  </figure>
+
+</div>
+  <div class="gallery">
+  <figure class="small">
+    <img src="images_b/mining/mining_ransacfixed.jpg" alt="First image">
+    <figcaption class="small">Fixed </figcaption>
+  </figure>
+  <figure class="small">
+    <img src="images_b/mining/mining_ransacwarped.jpg" alt="First image">
+    <figcaption class="small">Warped </figcaption>
+  </figure>
+
+</div>
+  <div class="gallery">
+  <figure class="large">
+    <img src="images_b/mining/mining_ransac_blend_ransac.jpg" alt="First image">
+    <figcaption class="small">Automatically stitched </figcaption>
+  </figure>
+</div>
+
+<p style="text-align:center;"> For method comparison</p>
+
+<div class="gallery">
+  <figure class="small">
+    <img src="images_b/mining/mining_ransac_blend_ransac.jpg" alt="First image">
+    <figcaption class="small">Automatically stitched </figcaption>
+  </figure>
+  <figure class="small">
+    <img src="images/a4/mining_blended.jpg" alt="First image">
+    <figcaption class="small">Results from part A, manually stitched </figcaption>
+  </figure>
+</div>
+
+<br><br>
+
+<!-- mosaic 4 -->
+
+<p style="text-align:center;"> The Campanile </p>
+
+
+<div class="gallery">
+  <figure class="heightconstrain">
+    <img src="images_b/campanile/campanile_ransacselected_points_fixed.jpg" alt="First image">
+    <figcaption class="small"> The 4 corners selected from RANSAC that maximized the inlier count: fixed image.</figcaption>
+  </figure>
+  <figure class="heightconstrain">
+    <img src="images_b/campanile/campanile_ransacselected_points_warped.jpg" alt="First image">
+    <figcaption class="small">The 4 corners selected from RANSAC that maximized the inlier count: image to warp. </figcaption>
+  </figure>
+
+</div>
+  <div class="gallery">
+  <figure class="heightconstrain">
+    <img src="images_b/campanile/campanile_ransacfixed.jpg" alt="First image">
+    <figcaption class="small">Fixed </figcaption>
+  </figure>
+  <figure class="heightconstrain">
+    <img src="images_b/campanile/campanile_ransacwarped.jpg" alt="First image">
+    <figcaption class="small">Warped </figcaption>
+  </figure>
+
+</div>
+  <div class="gallery">
+  <figure class="large">
+    <img src="images_b/campanile/campanile_ransac_blend_ransac.jpg" alt="First image">
+    <figcaption class="small">Automatically stitched </figcaption>
+  </figure>
+</div>
+
+<p style="text-align:center;"> For method comparison</p>
+
+<div class="gallery">
+  <figure class="heightconstrain">
+    <img src="images_b/campanile/campanile_ransac_blend_ransac.jpg" alt="First image">
+    <figcaption class="small">Automatically stitched </figcaption>
+  </figure>
+  <figure class="heightconstrain">
+    <img src="images/a4/campanile_blended.jpg" alt="First image">
+    <figcaption class="small">Results from part A, manually stitched </figcaption>
+  </figure>
+</div>
+
+<h3 style="text-align:center;">B.5: Bells and Whistles: Panorama Recognition </h3>
+
+<p> Given an unordered set of images, I implement panorama recognition and stitching. For a given set of three images, I run RANSAC on each unique combination of two images (3 total for 3 images).
+  I then order each pairing by the number of inliers, making the assumption that images that are next to each other in the panorama will have higher overlap and therefore more inliers.
+  The image that is in common between the two pairings with the highest number of inliers becomes the fixed image, and I warp the two other images around that fixed image. 
+</p>
+<p> For these three images, input in the order shown below (middle, left, right), RANSAC found 64, 56, and 21 inliers respectively between each of the three unique pairings: the left view and right view had the lowest inliner count.</p> 
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="images_b/mining_med.jpeg" alt="First image">
+      <figcaption class="small">Middle view </figcaption>
+    </figure>
+    <figure class="small">
+      <img src="images_b/mining_3left.jpeg" alt="First image">
+      <figcaption class="small">Left view</figcaption>
+    </figure>
+    <figure class="small">
+      <img src="images_b/mining_3right.jpeg" alt="First image">
+      <figcaption class="small">Right view </figcaption>
+    </figure>
+  </div>
+
+  <p>
+  It identified the middle view as the fixed image, and warped the left view to the middle view, then the right view to the mosaic of left and middle. I use the automatic stitching method from part B of this project. 
+  The final result is shown below. 
 
   <div class="gallery">
     <figure class="large">
-      <img src="images/trex_cylinder.jpg" alt="First image">
-      <figcaption class="small">T.Rex cylinder projection </figcaption>
+      <img src="images_b/detected_pano.jpg" alt="First image">
+      <figcaption class="small">Detected, automatically stitched, and blended mosaic.</figcaption>
     </figure>
   </div>
+
+</p>
+
+
 
 <br><br>
   <p style="text-align:center;"> Hey, thanks for reaching the bottom :) </p>
