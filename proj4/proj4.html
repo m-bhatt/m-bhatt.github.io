@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proj3 CS280A</title>
+  <!-- The loading of KaTeX is deferred to speed up page rendering -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js"></script>
+  <!-- To automatically render math in text elements -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css">
+  <meta charset="UTF-8">
+  <title>Collapsible Code Block</title>
+  <!-- Prism.js CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <style>
+
+	body {
+      display: flex;
+      justify-content: center;   /* center horizontally */
+      align-items: center;       /* center vertically */
+      font-family: Avenir, sans-serif;
+    }
+
+
+	.frame {
+      background: lavender;
+      border-radius: 20px;       /* rounded corners */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* soft shadow */
+	    justify-content: center;
+      padding: 30px;
+      max-width: 90%;        /*  not full page
+      width: 90%;                /* responsive */
+    }
+
+    .gallery {
+      display: flex;
+      justify-content: center;
+      gap: 20px;          /* space between images */
+      flex-wrap: wrap;    /* allows stacking if screen is too narrow */
+    }
+    figure {
+      text-align: center;
+      max-width: 400px;   /* control image size */
+      margin: 0;
+      display: flex;
+      margin-top: 10pxl;
+      flex-direction: column;
+      align-items: center; 
+    }
+    figure img {
+      height: 200px;        /* make image fit within max-width */
+      width: auto;
+      border-radius: 0px;
+      display: block;
+      /* object-fit: contain;   */
+    }
+    /* Small version */
+    figure.small img {
+      height: auto;
+      width: 400px;
+      border-radius: 0px;
+      display: block;
+    }
+    /* tiny version */
+    figure.tiny img {
+      height: auto;
+      width: 200px;
+      border-radius: 0px;
+      display: block;
+    }
+
+      /* Small version */
+      figure.heightconstrain img {
+      height: 300px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    /* Large version */
+    figure.large img {
+      height: 500px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    figcaption.large {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 400px;              /* don’t exceed image */
+    }
+
+    figcaption.small {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 200px;              /* don’t exceed image */
+    }
+
+    .arrow {
+      font-size: 2rem;
+      display: flex; 
+      color: #666;
+      user-select: none;
+      align-items: center;       /* vertical center */
+      justify-content: center;   /* horizontal center */
+      flex-shrink: 0;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="frame">
+
+  
+<h1 style="text-align:center;color:#8061DF">Project 4:  Neural Radiance Field (NeRF) </h1>
+
+<p style="text-align:center;"> In this project, I build a Neural Radiance Field on both pre-provided data (the Lego model) and on self-taken images.
+
+
+  <!-- <p>Math can be inline like \(2^{2x}=4\), or displayed like:</p> -->
+
+
+<h2 style="text-align:center;color:#8061DF"=>Part 0: Image Taking and Camera Calibration </h2>
+
+<h3 style="text-align:center;">0.1: Calibrating Camera </h3>
+  <p> I printed a 3x2 ArUco tag sheet and took photos of it from varying angles and distances, maintaining the same focal distance f (zoom).
+    To calibrate the camera, I use openCV's ArUco tag detector to find the tag ids and corners in each image. Then I set the tag with id 0 to be the world origin (0,0,0),
+    and map each ArUco tag to its corresponding world coordinates. Each tag was 6 cm on a side.
+    <br>
+    Finally, I use openCV's calibrateCamera function to compute the camera intrinsics. I resized all images to 1/20 of their original size for speed purposes. 
+    The resize was performed after all corner deteciton and calibration were completed, and I applied the same scale to the intrinsics matrix once generated.
+  </p>
+
+  <p style="text-align:center;"">Examples of calibration images: </p>
+  <div class="gallery">
+    <figure class="small">
+      <img src="img_0/calibhor1.jpeg" alt="First image">
+    </figure>
+    <figure class="small">
+      <img src="img_0/calibhor2.jpeg" alt="First image">
+    </figure>
+    <figure class="small">
+      <img src="img_0/calibhor3.jpeg" alt="First image">
+    </figure>
+  </div>
+
+<h3 style="text-align:center;">0.2: Capturing a 3D Object Scan </h3>
+  <p> I chose to take photos of a little plushie orange that my partner gave me.
+    I used the same 6-tag sheet and took photos at different angles of the orange and the tags, trying to keep tag id 0 in view.
+    I was unable to take images directly behind the orange, as the tag was blocked from that angle. 
+    I kept a fairly consistent distance from the orange, and maintained the same focal length f (zoom).
+  </p>
+
+  <p style="text-align:center;"">Examples of object scan images: </p>
+  <div class="gallery">
+    <figure class="small">
+      <img src="img_0/orange_1.jpeg" alt="First image">
+    </figure>
+    <figure class="small">
+      <img src="img_0/orange_2.jpeg" alt="First image">
+    </figure>
+    <figure class="small">
+      <img src="img_0/orange_3.jpeg" alt="First image">
+    </figure>
+  </div>
+  
+<h3 style="text-align:center;">0.3: Estimating Camera Pose </h3>
+  <p> I use a similar method to part 0.1 to calculate the points of the ArUco tag in world coordinates and image coordinates, using cv2's ArUco detector.
+    Using the camera intrinsics matrix K from part 0.1, I then solve a Perspective-n-Point (PnP) problem using cv2's solvePnP method to estimate the camera's position and orientation for each image. 
+    
+  </p>
+
+  <p style="text-align:center;"">Visualized camera frustums and images: </p>
+  <div class="gallery">
+    <figure class="small">
+      <img src="img_0/frustums_1.png" alt="First image">
+      <figcaption class="small">Bottom view (outside of bowl) </figcaption>
+    </figure>
+    <figure class="small">
+      <img src="img_0/frustums_2.png" alt="First image">
+      <figcaption class="small">View from head-on </figcaption>
+    </figure>
+    <figure class="small">
+      <img src="img_0/frustums_3.png" alt="First image">
+      <figcaption class="small">Top view (looking into bowl) </figcaption>
+    </figure>
+  </div>
+
+<h3 style="text-align:center;">0.4: Undistorting images and creating a dataset </h3>
+  <p> I use the camera intrinsics and pose estimates to undistort the images, using cv2's undistort method.
+    I also package the images into train, validation, and test images and camera extrinsics, and save them along with the focal length of the camera to a .npz file.
+    I used an 80/10/10 train/val/test split.
+  </p>
+
+
+<h2 style="text-align:center;color:#8061DF">Part 1: Fitting a Neural Field to a 2D Image </h2>
+
+    <p style="text-align:center;"> I create a multi-layer perceptron (MLP) network with Sinusoidal Positional Encoding (PE).
+      This network accepts as input the x,y coordinates of a pixel, and outputs the 3-dimensional RGB color.
+    </p>
+    <p>Loss was calculated using MSE. Model performance was evaluated using PSNR (Peak Signal To Noise Ratio), which is as follows for a normalized image: 
+        \( \mathrm{PSNR} = 10 \log_{10}\left(\frac{1}{\mathrm{MSE}}\right) \)
+  </p>
+    <p> 
+      Each iteration, I sample a batch of 10,000 pixels from the image. All inputs to the model were normalized. This includes pixel color (divided by 255), and x and y coordinates (divided by width and height of image, respectively).
+      The normalized coordinates were positionally encoded with the following formula: 
+      \(
+      PE(x) = \left( x, \sin(2^{0}\pi x), \cos(2^{0}\pi x), ..., \sin(2^{L-1}\pi x), \cos(2^{L-1}\pi x) \right).
+      \)
+      This means that the initial data input into the model for one pixel was of size (2 * L + 1) * 2.
+    </p>
+  
+    <p style="text-align:center;""> Network Architecture: </p>
+    <div class="gallery">
+      <figure class="heightconstrain">
+        <img src="img_1/model_arch.png" alt="First image">
+        <figcaption class="small">Learning rate: 0.01; L for PE: 15.</figcaption>
+      </figure>
+    </div>
+
+    <p style="text-align:center;"> Training progress visualization on the fox image: </p>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/fox_50.png" alt="First image">
+        <figcaption class="small">50 iterations</figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/fox_250.png" alt="First image">
+        <figcaption class="small">250 iterations</figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/fox_500.png" alt="First image">
+        <figcaption class="small">500 iterations</figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/fox_2000.png" alt="First image">
+        <figcaption class="small">2000 iterations</figcaption>
+      </figure>
+    </div>
+    <br>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/fox_PSNR_training.png" alt="First image">
+        <figcaption class="small">PSNR curve on the fox image</figcaption>
+      </figure>
+    </div>
+
+
+    <p style="text-align:center;"> Training progress visualization on an image of the orange plushie: </p>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/orange_1L=15width=256.png" alt="First image">
+        <figcaption class="small">1 iteration</figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/orange_100L=15width=256.png" alt="First image">
+        <figcaption class="small">100 iterations</figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/orange_300L=15width=256.png" alt="First image">
+        <figcaption class="small">300 iterations</figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/orange_1000L=15width=256.png" alt="First image">
+        <figcaption class="small">1000 iterations</figcaption>
+      </figure>
+    </div>
+
+    <br>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/orange_PSNR_training.png" alt="First image">
+        <figcaption class="small">PSNR curve on the orange image</figcaption>
+      </figure>
+    </div>
+
+
+    <p style="text-align:center;">Varying L and the width of the linear layers. All at 2000 iterations. </p>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/fox_2000L=5width=128.png" alt="First image">
+        <figcaption class="small">L=5, Width=128 </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/fox_2000L=5_width256.png" alt="First image">
+        <figcaption class="small">L=5, Width=256 </figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/fox_2000width=128_L15.png" alt="First image">
+        <figcaption class="small">L=15, Width=128 </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/fox_2000L=15width=256.png" alt="First image">
+        <figcaption class="small">L=15, Width=258 </figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/orng_2000L=5_width128.png" alt="First image">
+        <figcaption class="small">L=5, Width=128 </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/orng_2000L=5_width256.png" alt="First image">
+        <figcaption class="small">L=5, Width=256 </figcaption>
+      </figure>
+    </div>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_1/orng_2000width=128.png" alt="First image">
+        <figcaption class="small">L=15, Width=128 </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_1/orange_1000L=15width=256.png" alt="First image">
+        <figcaption class="small">L=15, Width=258. Some grid artifacts, likely due to high L. </figcaption>
+      </figure>
+    </div>
+
+
+<h2 style="text-align:center;color:#8061DF">Part 2: Fitting a Neural Radiance Field from Multi-View Images </h2>
+
+    <p style="text-align:center;"> I fit a NeRF to a 3D image scan, then use the model to predict novel views.
+    </p>
+
+    <h3 style="text-align:center;">2.1, 2.2, 2.3: Transformation, Sampling, and Dataloading Utility Functions </h3>
+    <p> I implement the following functions, all batched for efficiency using matrix operations: 
+      <ol>
+        <li>
+          Converts camera coordinates to world coordinates. Multiplies camera-to-world matrix with the the camera coordinates. A 1 is appended to the camera coordinates to convert to homogenous coordinates and support the multiplication.
+        </li>
+        <li>
+          Converts pixel coordinates to camera coordinates. Multiplies inverse of intrinsics matrix with image coordinate. A 1 is appended to the image coordinates to convert to homogenous coordinates and support the multiplication. 
+        </li>
+        <li>
+          Converts pixel coordinates to ray orientation and normalized direction. The ray orientation is the rotation component (first 3 rows, first 3 cols) of the extrinsics (camera-to-world) matrix.
+          The direction component is the difference between the point's world coordinates and the ray origin, divided by the difference's norm.
+        </li>
+        <li>
+          Samples N rays from M images. I randomly sample M images and then sample N//M rays from each. I add 0.5 to each pixel coordinate to represent the offest to the pixel center. 
+        </li>
+        <li>
+          Samples points along each ray. I instantiate a t = np.linspace(near, far, n_samples), and for training I perturb each t value by a random value between 0 and 1. Each ray experiences a different random perturbation.
+          I convert the points along the ray into 3d coordinates via ray_origin + ray_direction * t.
+        </li>
+        <li>Is a dataloader which performs a transformation from pixel coordinates to ray origin, direction, and pixel colors. I achieved this by stitching together the previous functions.
+          My dataloader first samples points from each image that rays will pass through, and collects their pixel values. Then, I convert the pixel coordinates to rays with origin and direction.
+          Finally, I sample points along those rays.
+        </li>
+      </ol>
+    </p>
+
+    <p style="text-align:center;"> Sampled rays and points from the camera frustums.</p>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_2/frustums_3.png" alt="First image">
+        <figcaption class="small">100 rays spread over all training cameras </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_2/frustums_2.png" alt="First image">
+        <figcaption class="small">100 rays from one camera </figcaption>
+      </figure>
+    </div>
+
+
+    <h3 style="text-align:center;">2.4: Neural Radiance Field </h3>
+    <p style="text-align:center;"> I implement another MLP model using PyTorch to predict point density and color at each sampled location along the ray. </p>
+
+    <p style="text-align:center;"> I input to the model 3D world coordinates (x,y,z) positionally encoded, and later inject the ray direction, also positionally encoded.
+      I also re-inject the x,y,z input into the model after a few linear layers. Each iteration, I sample batch_size rays evenly from all of the training images. </p>
+
+    <p style="text-align:center;"> Model architecture for the NeRF.</p>
+
+    <div class="gallery">
+      <figure class="heightconstrain">
+        <img src="img_2/model_arch.png" alt="First image">
+      </figure>
+    </div>
+
+
+    <h3 style="text-align:center;">2.5: Volume Rendering </h3>
+    <p style="text-align:center;"> The model's density and color predictions are condensed into a single color value per ray using a volume rendering equation. </p>
+
+    <p style="text-align:center;">The Volrend equation:</p>
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_2/volrend_eq.png" alt="First image">
+        <figcaption class="small"> Credit to Angjoo Kanazawa / Alexei Efros; image is from a lecture slide.</figcaption>
+      </figure>
+    </div>
+    <p> Ti: probability of the ray not terminating before sample location i.  The piece bookended between T_i and c_i is the probability of terminating at sample location i.
+    c_i is the color obtained from the network at a single point. sigma is the density obtained from the network at a single point. delta_i and delta_j represent the interval of space along the ray between consecutive points i and i+1. 
+    My volrend implementation passes the assertion test provided in the assignment spec. I run the volume rendering equation after the model predics color and density, and compare the resulting values with the true pixel values through MSE.
+    </p>
+
+  <h3 style="text-align:center;">Lego NeRF Results </h3>
+
+    <div class="gallery">
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model0_prediction.png" alt="First image">
+        <figcaption class="small">0 iterations </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model250_prediction.png" alt="First image">
+        <figcaption class="small">250 iterations </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model500_prediction.png" alt="First image">
+        <figcaption class="small">500 iterations</figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model750_prediction.png" alt="First image">
+        <figcaption class="small">750 iterations</figcaption>
+      </figure>
+    </div>
+    <div class="gallery">
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model1000_prediction.png" alt="First image">
+        <figcaption class="small">1000 iterations </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model1250_prediction.png" alt="First image">
+        <figcaption class="small">1250 iterations </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model1750_prediction.png" alt="First image">
+        <figcaption class="small">1750 iterations</figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="img_2/lego_200x200model2000_prediction.png" alt="First image">
+        <figcaption class="small">2000 iterations</figcaption>
+      </figure>
+    </div>
+
+    <p style="text-align:center;">Training and validation PSNR on the Lego data:</p>
+
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_2/training_lego_PSNR.png" alt="First image">
+        <figcaption class="small">Training PSNR </figcaption>
+      </figure>
+      <figure class="small">
+        <img src="img_2/val_lego_PSNR.png" alt="First image">
+        <figcaption class="small">Validation PSNR, measured every 75 iterations </figcaption>
+      </figure>
+    </div>
+
+    <p style="text-align:center;">Final results.
+      <br>
+       Model trained with a batch size of 10000 for 2000 iterations.
+       <br>
+    Learning rate of 5e-4 on an Adam optimizer, L =10 for PE, 64 points sampled per ray with near=2 and far=6. 
+    The images in the GIF are rendered novel views. All novel views consist of a ray shot through every pixel in the output image.
+    To avoid memory overflow, each image was predicted in batches of ~1000 rays.  </p>
+
+    <div class="gallery">
+      <figure class="large">
+        <img src="img_2/lego_nerf_trim.gif" alt="First image">
+      </figure>
+    </div>
+
+  <h3 style="text-align:center;">2.6: Training On My Own Data </h3>
+
+  <p style="text-align:center;"> I use my own collected 3D object scan as the input images to the model, using the calibrated camera intrinsics. </p>
+  <p>
+  Images are loaded in and normalized, and as in the Lego model, the K matrix reconstructed using the focal parameter as fx = fy, and ox and oy being 0.5 * the image width and height, respectively.
+  The major changes between the Lego model and Orange model is the hyperparameters. I used near=0.02 and far=0.5. The number of points per ray stayed at 64 and the batch size remained at 10,000 rays per batch.
+  I kept the learning rate at 5e-4 as well. I did however need to run many more iterations. The gifs shown are trained for 10,000 and 5,000 iterations, although it honestly would likely have performed better if I trained it even longer. 
+  <br><br>
+  I had better results in this section without performing the undistortion, so the images used in both the vertically and horizontally trained models were not undistorted.
+  <br><br>
+  I tried training this model twice. First, I used portrait images (and portrait calibration images) and generated a gif. I wasn't happy with how the camera rotation came out so I tried again with a new set of horizontal images (shown in the camera frustums visualizations earlier).
+  I used a new set of horizontal calibration images (also shown preivously) and generated a new gif. While I was happier with the camera rotation I did not train this model as long (5,000 iterations).
+  </p>
+
+  <p style="text-align:center;">Training and validation PSNR on the Orange Plushie data:</p>
+
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="img_2/train_orange_MSE_new.png" alt="First image">
+      <figcaption class="small">Training MSE on vertical training images </figcaption>
+    </figure>
+    <figure class="small">
+      <img src="img_2/train_orange_PSNR_new.png" alt="First image">
+      <figcaption class="small">Training PSNR on vertical training images </figcaption>
+    </figure>
+  </div>
+
+  <br><br>
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="img_2/train_orange_MSE_new(1).png" alt="First image">
+      <figcaption class="small">Training MSE on horizontal training images </figcaption>
+    </figure>
+    <figure class="small">
+      <img src="img_2/train_orange_PSNR_new(1).png" alt="First image">
+      <figcaption class="small">Training PSNR on horizontal training images </figcaption>
+    </figure>
+  </div>
+
+  <p style="text-align:center;">Training progress on a vertical validation image:</p>
+
+
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model0_prediction.png" alt="First image">
+      <figcaption class="small">0 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model250_prediction.png" alt="First image">
+      <figcaption class="small">250 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model500_prediction(1).png" alt="First image">
+      <figcaption class="small">500 iterations</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model1000_prediction(1).png" alt="First image">
+      <figcaption class="small">1000 iterations</figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model2000_prediction(1).png" alt="First image">
+      <figcaption class="small">2000 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model3000_prediction.png" alt="First image">
+      <figcaption class="small">3000 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model4000_prediction.png" alt="First image">
+      <figcaption class="small">4000 iterations</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115model4750_prediction(1).png" alt="First image">
+      <figcaption class="small">4750 iterations</figcaption>
+    </figure>
+  </div>
+
+  <br>
+  <p style="text-align:center;">Training progress on a horizontal validation image:</p>
+
+
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel0_prediction.png" alt="First image">
+      <figcaption class="small">0 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel250_prediction.png" alt="First image">
+      <figcaption class="small">250 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel500_prediction.png" alt="First image">
+      <figcaption class="small">500 iterations</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel750_prediction.png" alt="First image">
+      <figcaption class="small">750 iterations</figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel1000_prediction.png" alt="First image">
+      <figcaption class="small">1000 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel2000_prediction.png" alt="First image">
+      <figcaption class="small">2000 iterations </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel3000_prediction.png" alt="First image">
+      <figcaption class="small">3000 iterations</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel4000_prediction.png" alt="First image">
+      <figcaption class="small">4000 iterations</figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="img_2/nerf_data_non_undistorted_1115_newmodel4750_prediction.png" alt="First image">
+      <figcaption class="small">4750 iterations </figcaption>
+    </figure>
+  </div>
+
+
+  <p style="text-align:center;">Final results.
+
+  <div class="gallery">
+    <figure class="large">
+      <img src="img_2/orange_gif_trim.gif" alt="First image">
+    </figure>
+  </div>
+
+  <div class="gallery">
+    <figure class="large">
+      <img src="img_2/orange_horiz_2_trim.gif" alt="First image">
+    </figure>
+  </div>
+
+  <p style="text-align:center;"> The first horizontal gif struggled with the camera rotating in front of the object, so I tried to move the camera further from the object when it rotates towards 180 degrees. This had minor success. Lol. </p>
+  <div class="gallery">
+    <figure class="large">
+      <img src="img_2/orange_horiz_1_trim.gif" alt="First image">
+    </figure>
+  </div>
+
+
+  <h2 style="text-align:center;color:#8061DF">Bells and Whistles: Depth Map </h2>
+
+  <p style="text-align:center;"> I modify the Volume Rendering equation to yield depths per-pixel instead of color.
+    I multiply Ti (probability of the ray not terminating before sample location i) and the probability of terminating at sample location i.
+    I then weight these values by their location along the ray (given by the ts (np.linspace(near, far, num_samples))) and sum the result.
+    This equation can be seen here.
+    <div class="gallery">
+      <figure class="small">
+        <img src="img_2/depth_eq.png" alt="First image">
+        <figcaption class="small"> Credit to Angjoo Kanazawa / Alexei Efros; image is from a lecture slide.</figcaption>
+
+      </figure>
+    </div> </p>
+
+  <p style="text-align:center;"> I chose to make the depth map purple. Lighter purple values are closer, darker are further away from the camera.
+  </p>
+
+  <p style="text-align:center;">Lego depth map:</p>
+
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="img_2/depth_trim.gif" alt="First image">
+      <figcaption class="small">Training MSE on vertical training images </figcaption>
+    </figure>
+  </div>
+
+
+
+<br><br>
+  <p style="text-align:center;"> Hey, thanks for reaching the bottom :) </p>
+
+</div>
+
+
+</body>
+</html>
