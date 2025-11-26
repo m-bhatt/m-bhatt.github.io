@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proj5 CS280A</title>
+  <!-- The loading of KaTeX is deferred to speed up page rendering -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js"></script>
+  <!-- To automatically render math in text elements -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css">
+  <meta charset="UTF-8">
+  <title>Collapsible Code Block</title>
+  <!-- Prism.js CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <style>
+
+	body {
+      display: flex;
+      justify-content: center;   /* center horizontally */
+      align-items: center;       /* center vertically */
+      font-family: Avenir, sans-serif;
+    }
+
+
+	.frame {
+      background: lavender;
+      border-radius: 20px;       /* rounded corners */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* soft shadow */
+	    justify-content: center;
+      padding: 30px;
+      max-width: 90%;        /*  not full page
+      width: 90%;                /* responsive */
+    }
+
+    .gallery {
+      display: flex;
+      justify-content: center;
+      gap: 20px;          /* space between images */
+      flex-wrap: wrap;    /* allows stacking if screen is too narrow */
+    }
+    figure {
+      text-align: center;
+      max-width: 400px;   /* control image size */
+      margin: 0;
+      display: flex;
+      margin-top: 10pxl;
+      flex-direction: column;
+      align-items: center; 
+    }
+    figure img {
+      height: 200px;        /* make image fit within max-width */
+      width: auto;
+      border-radius: 0px;
+      display: block;
+      /* object-fit: contain;   */
+    }
+    /* Small version */
+    figure.small img {
+      height: auto;
+      width: 400px;
+      border-radius: 0px;
+      display: block;
+    }
+    /* tiny version */
+    figure.tiny img {
+      height: auto;
+      width: 200px;
+      border-radius: 0px;
+      display: block;
+    }
+
+      /* Small version */
+      figure.heightconstrain img {
+      height: 300px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    /* Large version */
+    figure.large img {
+      height: 500px;
+      width: auto;
+      border-radius: 0px;
+      display: block;
+    }
+
+    figcaption.large {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 400px;              /* don’t exceed image */
+    }
+
+    figcaption.small {
+      margin-top: 5px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;    /* force centering */
+      width: fit-content;           /* shrink to image width */
+      max-width: 200px;              /* don’t exceed image */
+    }
+
+    .arrow {
+      font-size: 2rem;
+      display: flex; 
+      color: #666;
+      user-select: none;
+      align-items: center;       /* vertical center */
+      justify-content: center;   /* horizontal center */
+      flex-shrink: 0;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="frame">
+
+  
+<h1 style="text-align:center;color:#8061DF">Project 5:  Neural Radiance Field (NeRF) </h1>
+
+<p style="text-align:center;"> In this project, I explore Diffusion Models to denoise and generate images.
+
+
+  <!-- <p>Math can be inline like \(2^{2x}=4\), or displayed like:</p> -->
+
+
+<h2 style="text-align:center;color:#8061DF"=>Part 0: Exploration with DeepFloyd </h2>
+
+
+  <p style="text-align:center"> I use DeepFloyd IF from HuggingFace. I generate a few prompt embeddings using a T5 Encoder Embeddings cluster on HuggingFace, from Jameson Crate. I use random seed 280 throughout this project. </p>
+
+  <p style="text-align:center;"">3 generated images. </p>
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/p01.png"  >
+      <figcaption>"a watercolor painting of <br> a lake with ducks"</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/p02.png"  >
+      <figcaption>"an oil painting of <br> a desert with cacti"</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/p03.png"  >
+      <figcaption>"an oil painting of a house <br> on stilts by the water"</figcaption>
+
+    </figure>
+  </div>
+
+  <p style="text-align:center;""> I experiment with different values of num_inference_steps on the prompt "a watercolor painting of a lake with ducks." </p>
+
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/ducks_deepfloyd_1.png"  >
+      <figcaption>1 step</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/ducks_deepfloyd_4.png"  >
+      <figcaption>4 steps</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/ducks_deepfloyd_5.png"  >
+      <figcaption>5 steps</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/ducks_deepfloyd_10.png"  >
+      <figcaption>10 steps</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/ducks_deepfloyd_50.png"  >
+      <figcaption>50 steps</figcaption>
+    </figure>
+  </div>
+
+  <p>I thought more detailled prompts would yield a better output, but this was not always the case. The prompt "an oil painting of surfers at the beach" yielded fairly poor results.
+    Extremely general prompts e.g "a strawberry" generated very different outputs each time the model was ran. More specific prompts still had large amounts of variation but had similar composition, such as seen with the ducks.
+    Small objects (e.g the ducks) often looked very poor for lower inference steps, and would only have a clarified shape after large numbers of steps.</p>
+
+
+<h2 style="text-align:center;color:#8061DF"=>Part 1: Sampling Loops </h2>
+
+<p style="text-align:center;"> DeepFloyd is a trained denoiser. Given a noisy image, it tries to predict the noise in an image. 
+  We can take that predicted noise and iteratively (or completely) remove the noise from the image.
+  To iteratively denoise (generate), we take a completely noisy image at time T (xT), and remove the predicted noise at that timestep, yielding a slightly less noisy image xT-1.
+  For DeepFloyd, we use T=1000 and iterate in steps of 30.
+  <br> 
+  The forward process is to iteratively add noise. The clean image is x0, and as t increases, we iteratively add more noise to the image.
+  The noise is sampled from a Gaussian distribution. As it is added to the image, the image is scaled.
+</p>
+
+<div class="gallery">
+  <figure class="small">
+    <img src="images/forward_eq.png">
+  </figure>
+</div>
+
+
+<details>
+  <summary>Click to see an implementation of the forward function.</summary>
+  <pre><code class="language-python">
+    def forward(im, t):
+    """
+    Args:
+      im : torch tensor of size (1, 3, 64, 64) representing the clean image
+      t : integer timestep
+    Returns:
+      im_noisy : torch tensor of size (1, 3, 64, 64) representing the noisy image at timestep t
+    """
+    with torch.no_grad():
+      alpha_t = alphas_cumprod[t]
+      im_noisy = np.sqrt(alpha_t) * im + np.sqrt(1-alpha_t) * torch.randn_like(im)
+    return im_noisy
+  </code></pre>
+</details>
+
+  <p style="text-align:center;"">Test image of the Campanile at 3 different noise levels. </p>
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/campanile_clean.png"  >
+      <figcaption>Original image</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/campanile_250.png"  >
+      <figcaption>noise at t=250</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/campanile_500.png"  >
+      <figcaption>noise at t=500</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/capanile_750.png"  >
+      <figcaption>noise at t=750</figcaption>
+    </figure>
+  </div>
+
+  <h3 style="text-align:center;">1.2: Classical Denoising </h3>
+  <p style="text-align:center;">I try to denoise the noisy Campanile images with classical methods: a Gaussian blur. 
+    This was very difficult and resulted in the loss of most high frequency features for the very noisy images. </p>
+
+    <div class="gallery">
+    <figure class="tiny">
+      <img src="images/campanile_250.png"  >
+      <figcaption>t=250 noise</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/campanile_500.png"  >
+      <figcaption>t=500 noise</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/capanile_750.png"  >
+      <figcaption>t=750 noise</figcaption>
+    </figure>
+  </div>
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/campanile_gauss_blur_250.png"  >
+      <figcaption>Gaussian de-noise: <br> Kernel size 5, SD 2</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/campanile_gauss_blur_500.png"  >
+      <figcaption>Gaussian de-noise: <br> Kernel size 23, SD 2.5</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/campanile_gauss_blur_750.png"  >
+      <figcaption>Gaussian de-noise: <br> Kernel size 45, SD 4</figcaption>
+    </figure>
+    </div>
+
+<h3 style="text-align:center;">1.3: One-Step Denoising </h3>
+      <p style="text-align:center;">I try to denoise the noisy Campanile images with DeepFloyd.
+      I add noise to the Campanile image with the forward function, estimate the noise via DeepFloyd stage 1, and remove the noise completely to get an estimate of the original image.
+    </p>
+
+    <div class="gallery">
+      <figure class="tiny">
+        <img src="images/campanile_clean.png"  >
+        <figcaption>Original image</figcaption>
+      </figure>
+    </div>
+        <div class="gallery">
+        <figure class="tiny">
+          <img src="images/1_3_250_noise.png"  >
+          <figcaption>t=250 noise</figcaption>
+        </figure>
+        <figure class="tiny">
+          <img src="images/1_3_500_noise.png"  >
+          <figcaption>t=500 noise</figcaption>
+        </figure>
+        <figure class="tiny">
+          <img src="images/1_3_750_noise.png"  >
+          <figcaption>t=750 noise</figcaption>
+        </figure>
+      </div>
+      <div class="gallery">
+        <figure class="tiny">
+          <img src="images/1_3_250_est.png"  >
+          <figcaption>One-step estimate</figcaption>
+        </figure>
+        <figure class="tiny">
+          <img src="images/1_3_500_est.png"  >
+          <figcaption>One-step estimate</figcaption>
+        </figure>
+          <figure class="tiny">
+            <img src="images/1_3_750_est.png"  >
+            <figcaption>One-step estimate</figcaption>
+          </figure>
+          </div>
+
+
+    <h3 style="text-align:center;">1.4: Iterative Denoising </h3>
+    <p style="text-align:center;">Instead of completely removing all of the noise in one step, I iteratively remove it over timesteps T to 0.  I use the following equation, 
+    which effectively performs a linear interpolation between the clean image and the noise image. 
+  The timestep schedule ranges from 990 to 0 with steps of 30.</p>
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="images/iterative_denoise_eq.png"  >
+      <figcaption>v_sigma: random noise. alphas: from or computed from DeepFloyd's noise coefficients.</figcaption>
+    </figure>
+  </div>
+
+  <details>
+    <summary>Click to see an implementation of the iterative denoising function.</summary>
+    <pre><code class="language-python">
+    strided_timesteps = np.arange(990, -30, -30)
+    stage_1.scheduler.set_timesteps(timesteps=strided_timesteps)
+
+    def iterative_denoise(im_noisy, i_start, prompt_embeds, timesteps, display=True):
+      image = im_noisy
+    
+      with torch.no_grad():
+        for i in range(i_start, len(timesteps) - 1):
+          t = timesteps[i]
+          prev_t = timesteps[i+1]
+          alpha_bar_t = alphas_cumprod[t]
+          alpha_prime_t = alphas_cumprod[prev_t]
+          alpha = alpha_bar_t / alpha_prime_t
+          beta = (1-alpha)
+        
+          # Get noise estimate
+          model_output = stage_1.unet(
+              image,
+              t,
+              encoder_hidden_states=prompt_embeds,
+              return_dict=False
+          )[0]
+    
+          # Split estimate into noise and variance estimate
+          noise_est, predicted_variance = torch.split(model_output, image.shape[1], dim=1)
+
+          # DDPM estimate of next less-noisy image
+          x0 = (image - torch.sqrt(1-alpha_bar_t) * noise_est) / torch.sqrt(alpha_bar_t)
+    
+          pred_prev_image = (torch.sqrt(alpha_prime_t) * beta / (1-alpha_bar_t)) * x0 + (torch.sqrt(alpha) * (1-alpha_prime_t) / (1-alpha_bar_t)) * image
+          pred_prev_image = add_variance(predicted_variance, t, pred_prev_image)
+          image = pred_prev_image
+        clean = image.cpu().detach().numpy()
+      return clean
+    </code></pre>
+  </details>
+
+
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/campanile_clean.png"  >
+      <figcaption>Original image</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/iterative_denoise_corr_one_step_denoise.png"  >
+      <figcaption>One-step denoise</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/gaussian_blur_k5_sd2.png"  >
+      <figcaption>Gaussian blur denoise: <br> Kernel size 5, SD 2.</figcaption>
+    </figure>
+  </div>
+
+  <div class="gallery">
+      <figure class="tiny">
+        <img src="images/iterative_denoise_corr690.png"  >
+        <figcaption>Noisy Campanile at t=690</figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="images/iterative_denoise_corr540.png"  >
+        <figcaption>Noisy Campanile at t=540</figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="images/iterative_denoise_corr390.png"  >
+        <figcaption>Noisy Campanile at t=390</figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="images/iterative_denoise_corr240.png"  >
+        <figcaption>Noisy Campanile at t=240</figcaption>
+      </figure>
+        <figure class="tiny">
+          <img src="images/iterative_denoise_corr90.png"  >
+          <figcaption>Noisy Campanile at t=90</figcaption>
+        </figure>
+        <figure class="tiny">
+          <img src="images/iterative_denoise_corr_clean.png"  >
+          <figcaption>Iteratively denoised Campanile.</figcaption>
+        </figure>
+        </div>
+
+
+<h3 style="text-align:center;">1.5: Diffusion Model Sampling </h3>
+      <p style="text-align:center;"> I run the iterative_denoise function with i_start = 0 and pass DeepFloyd a random noise image.
+        The model denoises pure noise, leading to the generation of an image. 
+    </p>
+
+    <p style="text-align:center;">5 results for the prompt "a high quality photo" </p>
+    
+    <div class="gallery">
+    <figure class="tiny">
+      <img src="images/gen_im1.png"  >
+    </figure>
+    <figure class="tiny">
+      <img src="images/gen_im2.png"  >
+    </figure>
+    <figure class="tiny">
+      <img src="images/gen_im3.png"  >
+    </figure>
+    <figure class="tiny">
+      <img src="images/gen_im6.png"  >
+    </figure>
+    <figure class="tiny">
+      <img src="images/gen_im7.png"  >
+    </figure>
+    </div>
+
+<h3 style="text-align:center;">1.6: Classifier-Free Guidance</h3>
+<p style="text-align:center;"> The images from the previous section are muted and often the model generated unrecognizable forms.
+  To improve the image quality (but decreasing the image diversity), I utilize CFG. I pass the empty prompt '' to the model to generate an unconditional noise estimate
+  along with the prompt "a high quality photo" to generate a conditional noise estimate. 
+  I combine the two estimates with scale=7.
+  </p>
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="images/cfg_eq.png"  >
+      <figcaption>Combination of unconditional (u) and conditional (c) noise </figcaption>
+    </figure>
+  </div>
+
+  <details>
+    <summary>Click to see an implementation of the cfg function.</summary>
+    <pre><code class="language-python">
+      prompt_embeds = prompt_embeds_dict['a high quality photo']
+      uncond_prompt_embeds = prompt_embeds_dict['']
+      
+      def iterative_denoise_cfg(im_noisy, i_start, prompt_embeds, uncond_prompt_embeds, timesteps, scale=7, display=True):
+        image = im_noisy
+      
+        with torch.no_grad():
+          for i in range(i_start, len(timesteps) - 1):
+            # Get timesteps
+            t = timesteps[i]
+            prev_t = timesteps[i+1]
+      
+            alpha_bar_t = alphas_cumprod[t]
+            alpha_prime_t = alphas_cumprod[prev_t]
+            alpha = alpha_bar_t / alpha_prime_t
+            beta = (1-alpha)
+      
+            # Get cond noise estimate
+            model_output = stage_1.unet(
+                image,
+                t,
+                encoder_hidden_states=prompt_embeds,
+                return_dict=False
+            )[0]
+      
+            # Get uncond noise estimate
+            uncond_model_output = stage_1.unet(
+                image,
+                t,
+                encoder_hidden_states=uncond_prompt_embeds,
+                return_dict=False
+            )[0]
+      
+            # Split estimate into noise and variance estimate
+            noise_est, predicted_variance = torch.split(model_output, image.shape[1], dim=1)
+            uncond_noise_est, _ = torch.split(uncond_model_output, image.shape[1], dim=1)
+      
+            # Compute the CFG noise estimate based on equation 4
+            cfg_noise = uncond_noise_est + scale * (noise_est - uncond_noise_est)
+
+            # Get `pred_prev_image`, the next less noisy image.
+            x0 = (image - torch.sqrt(1-alpha_bar_t) * cfg_noise) / torch.sqrt(alpha_bar_t)
+            pred_prev_image = (torch.sqrt(alpha_prime_t) * beta / (1-alpha_bar_t)) * x0 + (torch.sqrt(alpha) * (1-alpha_prime_t) / (1-alpha_bar_t)) * image
+            pred_prev_image = add_variance(predicted_variance, t, pred_prev_image)
+
+            image = pred_prev_image
+          clean = image.cpu().detach().numpy()
+        return clean
+    </code></pre>
+  </details>
+
+  <p style="text-align:center;">5 results using CFG </p>
+  
+  <div class="gallery">
+  <figure class="tiny">
+    <img src="images/cfg_gen1.png"  >
+  </figure>
+  <figure class="tiny">
+    <img src="images/cfg_gen2.png"  >
+  </figure>
+  <figure class="tiny">
+    <img src="images/cfg_gen3.png"  >
+  </figure>
+  <figure class="tiny">
+    <img src="images/cfg_gen4.png"  >
+  </figure>
+  <figure class="tiny">
+    <img src="images/cfg_gen5.png"  >
+  </figure>
+  </div>
+
+<h3 style="text-align:center;">1.7: Image to Image Translation </h3>
+  <p style="text-align:center;"> I noise the Campanile image according to different timesteps t, then run CFG denoise on it.
+    Images with lower noise levels end up closer to the original image. I use "a high quality photo" as the unconditional prompt and the blank prompt '' as the unconditional prompt.
+    This method follows the SDEdit algorithm.
+</p>
+
+<p style="text-align:center;">SDEdited Campanile </p>
+
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/translation_t1.png"  >
+  <figcaption>t = 1</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/translation_t3.png"  >
+  <figcaption>t = 3</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/translation_t5.png"  >
+  <figcaption>t = 5</figcaption>
+</figure>
+</div>
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/translation_t7.png"  >
+  <figcaption>t = 7</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/translation_t10.png"  >
+  <figcaption>t = 10</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/translation_t20.png"  >
+  <figcaption>t = 20</figcaption>
+</figure>
+</div>
+
+<p style="text-align:center;">SDEdited Bancroft Library </p>
+
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/t2t_1.png"  >
+  <figcaption>t = 1</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_2.png"  >
+  <figcaption>t = 3</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_3.png"  >
+  <figcaption>t = 5</figcaption>
+</figure>
+</div>
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/t2t_4.png"  >
+  <figcaption>t = 7</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_5.png"  >
+  <figcaption>t = 10</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_6.png"  >
+  <figcaption>t = 20</figcaption>
+</figure>
+</div>
+
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/library Large.jpeg"  >
+  <figcaption>original image</figcaption>
+</figure>
+</div>
+
+<p style="text-align:center;">SDEdited flower </p>
+
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/t2t_21.png"  >
+  <figcaption>t = 1</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_22.png"  >
+  <figcaption>t = 3</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_23.png"  >
+  <figcaption>t = 5</figcaption>
+</figure>
+</div>
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/t2t_24.png"  >
+  <figcaption>t = 7</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_25.png"  >
+  <figcaption>t = 10</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/t2t_26.png"  >
+  <figcaption>t = 20</figcaption>
+</figure>
+</div>
+
+<div class="gallery">
+  <figure class="tiny">
+    <img src="images/pflower Large.jpeg"  >
+    <figcaption>original image</figcaption>
+  </figure>
+  </div>
+
+
+<h3 style="text-align:center;">1.7.1: Editing Nonrealistic Images </h3>
+  <p style="text-align:center;"> I pass non-realistic (drawn or simplified) images to the model and perform the same SDEdit procedure.
+</p>
+
+<p style="text-align:center;">SDEdited Web Image of a <a href=https://easydrawingguides.com/wp-content/uploads/2023/05/step_10_cartoon_bed_drawing_tutorial.png> Bed </a>
+</p>
+
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/editing1.png"  >
+  <figcaption>t = 1</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing3.png"  >
+  <figcaption>t = 3</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing5.png"  >
+  <figcaption>t = 5</figcaption>
+</figure>
+</div>
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/editing7.png"  >
+  <figcaption>t = 7</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing10.png"  >
+  <figcaption>t = 10</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing20.png"  >
+  <figcaption>t = 20</figcaption>
+</figure>
+</div>
+
+<p style="text-align:center;">SDEdited Hand-Drawn Orange (sorry, I drew it on a trackpad) </p>
+
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/editing3_1.png"  >
+  <figcaption>t = 1</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing3_3.png"  >
+  <figcaption>t = 3</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing3_5.png"  >
+  <figcaption>t = 5</figcaption>
+</figure>
+</div>
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/editing3_7.png"  >
+  <figcaption>t = 7</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing3_10.png"  >
+  <figcaption>t = 10</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing3_20.png"  >
+  <figcaption>t = 20</figcaption>
+</figure>
+</div>
+
+<p style="text-align:center;">SDEdited Hand-Drawn Tree (also drawn on trackpad, sorry) </p>
+
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/editing2_1.png"  >
+  <figcaption>t = 1</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing2_2.png"  >
+  <figcaption>t = 3</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing2_5.png"  >
+  <figcaption>t = 5</figcaption>
+</figure>
+</div>
+<div class="gallery">
+<figure class="tiny">
+  <img src="images/editing2_7.png"  >
+  <figcaption>t = 7</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing2_10.png"  >
+  <figcaption>t = 10</figcaption>
+</figure>
+<figure class="tiny">
+  <img src="images/editing2_20.png"  >
+  <figcaption>t = 20</figcaption>
+</figure>
+</div>
+
+
+<h3 style="text-align:center;">1.7.2: Inpainting </h3>
+<p style="text-align:center;"> I run the diffusion denoising loop (CFG) and at eah step, I apply a mask such that the edits only affect the area within the mask.
+  The area outside the mask is replaced, with the appropriate amount of noise for the timestep. 
+  </p>
+
+  <div class="gallery">
+    <figure class="small">
+      <img src="images/inpainting_eq.png"  >
+    </figure>
+  </div>
+
+  <details>
+    <summary>Click to see an implementation of the inpainting function.</summary>
+    <pre><code class="language-python">
+  prompt_embeds = prompt_embeds_dict['a high quality photo']
+  uncond_prompt_embeds = prompt_embeds_dict['']
+      
+  def inpaint(original_image, mask, prompt_embeds, uncond_prompt_embeds, timesteps, scale=7, display=True):
+    image = torch.randn_like(original_image).to(device).half()
+    mask = mask.to(device).half()
+    original_image = original_image.to(device).half()
+    i_start = 0
+    with torch.no_grad():
+      for i in range(i_start, len(timesteps) - 1):
+        # Get timesteps
+        t = timesteps[i]
+        prev_t = timesteps[i+1]
+        alpha_bar_t = alphas_cumprod[t]
+        alpha_prime_t = alphas_cumprod[prev_t]
+        alpha = alpha_bar_t / alpha_prime_t
+        beta = (1-alpha)
+
+        # Get cond noise estimate
+        model_output = stage_1.unet(
+            image,
+            t,
+            encoder_hidden_states=prompt_embeds,
+            return_dict=False
+        )[0]
+
+        # Get uncond noise estimate
+        uncond_model_output = stage_1.unet(
+            image,
+            t,
+            encoder_hidden_states=uncond_prompt_embeds,
+            return_dict=False
+        )[0]
+
+        # Split estimate into noise and variance estimate
+        noise_est, predicted_variance = torch.split(model_output, image.shape[1], dim=1)
+        uncond_noise_est, _ = torch.split(uncond_model_output, image.shape[1], dim=1)
+
+        cfg_noise = uncond_noise_est + scale * (noise_est - uncond_noise_est)
+        
+        # Get `pred_prev_image`, the next less noisy image.
+        x0 = (image - torch.sqrt(1-alpha_bar_t) * cfg_noise) / torch.sqrt(alpha_bar_t)
+        pred_prev_image = (torch.sqrt(alpha_prime_t) * beta / (1-alpha_bar_t)) * x0 + (torch.sqrt(alpha) * (1-alpha_prime_t) / (1-alpha_bar_t)) * image
+        pred_prev_image = add_variance(predicted_variance, t, pred_prev_image)
+        
+        # apply mask
+        xt = mask * pred_prev_image + (1-mask)*forward(original_image, prev_t)
+        
+        image = xt
+
+      clean = image.cpu().detach().numpy()
+    return clean
+    </code></pre>
+  </details>
+
+  <p style="text-align:center;">Inpainted images</p>
+  
+  <div class="gallery">
+  <figure class="tiny">
+    <img src="images/inpainting_og.png"  >
+    <figcaption> Original image </figcaption>
+  </figure>
+  <figure class="tiny">
+    <img src="images/inpainting_mask.png"  >
+    <figcaption> Mask  </figcaption>
+  </figure>
+  <figure class="tiny">
+    <img src="images/inpainting_toreplace.png"  >
+    <figcaption> Area to replace  </figcaption>
+  </figure>
+  <figure class="tiny">
+    <img src="images/inpainting_img.png"  >
+    <figcaption> Inpainted image </figcaption>
+  </figure>
+  </div>
+
+    
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/my_inpaintog.png"  >
+      <figcaption> Original image </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/my_inpaint1mask.png"  >
+      <figcaption> Mask  </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/my_inpaint1_TR.png"  >
+      <figcaption> Area to replace  </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/my_inpaint1.png"  >
+      <figcaption> Inpainted image </figcaption>
+    </figure>
+    </div>
+
+      
+    <div class="gallery">
+      <figure class="tiny">
+        <img src="images/my_inpaint2og.png"  >
+        <figcaption> Original image </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="images/my_inpaint2mask.png"  >
+        <figcaption> Mask  </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="images/my_inpaint2_TR.png"  >
+        <figcaption> Area to replace  </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="images/my_inpaint2.png"  >
+        <figcaption> Inpainted image </figcaption>
+      </figure>
+      </div>
+      
+      
+<h3 style="text-align:center;">1.7.1: Editing Nonrealistic Images </h3>
+      <p style="text-align:center;"> I very slightly modify the SDEdit process by guiding projection with a text prompt.
+    </p>
+
+    <p style="text-align:center;"> Campanile edited with prompt "a candle". </p>
+    
+    <div class="gallery">
+    <figure class="tiny">
+      <img src="images/173_11.png"  >
+      <figcaption>t = 1</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_12.png"  >
+      <figcaption>t = 3</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_13.png"  >
+      <figcaption>t = 5</figcaption>
+    </figure>
+    </div>
+    <div class="gallery">
+    <figure class="tiny">
+      <img src="images/173_14.png"  >
+      <figcaption>t = 7</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_15.png"  >
+      <figcaption>t = 10</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_16.png"  >
+      <figcaption>t = 20</figcaption>
+    </figure>
+    </div>
+
+    <p style="text-align:center;"> Flower edited with prompt "a strawberry". </p>
+
+
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/173_21.png"  >
+      <figcaption>t = 1</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_22.png"  >
+      <figcaption>t = 3</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_23.png"  >
+      <figcaption>t = 5</figcaption>
+    </figure>
+    </div>
+    <div class="gallery">
+    <figure class="tiny">
+      <img src="images/173_24.png"  >
+      <figcaption>t = 7</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_25.png"  >
+      <figcaption>t = 10</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_26.png"  >
+      <figcaption>t = 20</figcaption>
+    </figure>
+    </div>
+
+    <p style="text-align:center;"> Berkeley campus edited with prompt "a meadow with flowers". </p>
+
+
+  <div class="gallery">
+    <figure class="tiny">
+      <img src="images/173_31.png"  >
+      <figcaption>t = 1</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_32.png"  >
+      <figcaption>t = 3</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_33.png"  >
+      <figcaption>t = 5</figcaption>
+    </figure>
+    </div>
+    <div class="gallery">
+    <figure class="tiny">
+      <img src="images/173_34.png"  >
+      <figcaption>t = 7</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_35.png"  >
+      <figcaption>t = 10</figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/173_36.png"  >
+      <figcaption>t = 20</figcaption>
+    </figure>
+    </div>
+
+
+<h3 style="text-align:center;">1.8: Visual Anagrams </h3>
+    <p style="text-align:center;"> I iteratively denoise an image (CFG) with two prompts. The first is used to generate an estimate of the noise.
+      The second is used to generate an estimate of the noise on the vertically flipped image. The noise estimate is then flipped again (to invert the transformation) and both noise estimates are averaged.
+      The result is an image that looks like two different pictures when viewed right way up and upside down.
+      </p>
+    
+      <div class="gallery">
+        <figure class="small">
+          <img src="images/va_eq.png"  >
+        </figure>
+      </div>
+    
+      <details>
+        <summary>Click to see an implementation of the visual anagrams function.</summary>
+        <pre><code class="language-python">
+  def make_flip_illusion(image, i_start, prompt_embed1, prompt_embed2, uncond_prompt_embeds, timesteps, scale=7, display=True):
+      im = torch.randn_like(image).to(device).half()
+      prompt_embed1 = prompt_embed1.to('cuda')
+      prompt_embed2 = prompt_embed2.to('cuda')
+      uncond_prompt_embeds = uncond_prompt_embeds.to('cuda')
+    
+      with torch.no_grad():
+        for i in range(i_start, len(timesteps) - 1):
+          # Get timesteps
+          t = timesteps[i]
+          prev_t = timesteps[i+1]
+          alpha_bar_t = alphas_cumprod[t]
+          alpha_prime_t = alphas_cumprod[prev_t]
+          alpha = alpha_bar_t / alpha_prime_t
+          beta = (1-alpha)
+    
+          cfg_noise1, pred_variance1 = get_noise_est(im, t, scale, prompt_embed1, uncond_prompt_embeds)
+    
+          flipped_im = flip(im)
+          cfg_noise2, pred_variance2 = get_noise_est(flipped_im, t, scale, prompt_embed2, uncond_prompt_embeds)
+          cfg_noise2 = flip(cfg_noise2)
+    
+          avg_noise = (cfg_noise1 + cfg_noise2) / 2
+          avg_variance = (pred_variance1 + pred_variance2) / 2
+    
+          # Get `pred_prev_image`, the next less noisy image.
+          x0 = (im - torch.sqrt(1-alpha_bar_t) * avg_noise) / torch.sqrt(alpha_bar_t)
+          pred_prev_image = (torch.sqrt(alpha_prime_t) * beta / (1-alpha_bar_t)) * x0 + (torch.sqrt(alpha) * (1-alpha_prime_t) / (1-alpha_bar_t)) * im
+          # print(predicted_variance.device, t.device, pred_prev_image.device)
+    
+          pred_prev_image = add_variance(avg_variance, t, pred_prev_image)        
+          im = pred_prev_image
+    
+        clean = im.cpu().detach().numpy()
+      return clean
+    
+    def get_noise_est(image, t, scale, prompt_embeds, uncond_prompt_embeds, ):
+        # Get cond noise estimate
+        model_output = stage_1.unet(
+            image,
+            t,
+            encoder_hidden_states=prompt_embeds,
+            return_dict=False
+        )[0]
+    
+        # Get uncond noise estimate
+        uncond_model_output = stage_1.unet(
+            image,
+            t,
+            encoder_hidden_states=uncond_prompt_embeds,
+            return_dict=False
+        )[0]
+    
+        # Split estimate into noise and variance estimate
+        noise_est, predicted_variance = torch.split(model_output, image.shape[1], dim=1)
+        uncond_noise_est, _ = torch.split(uncond_model_output, image.shape[1], dim=1)
+        cfg_noise = uncond_noise_est + scale * (noise_est - uncond_noise_est)
+        return cfg_noise, predicted_variance
+      
+    def flip(image):
+      return torch.flip(image, [2])
+        </code></pre>
+      </details>
+    
+      <p style="text-align:center;">Visual Anagrams: vertical flip</p>
+      
+      <div class="gallery">
+      <figure class="tiny">
+        <img src="images/flip1-2.png"  >
+        <figcaption> "A charcoal drawing of an old woman" </figcaption>
+      </figure>
+      <figure class="tiny">
+        <img src="images/flip1-2flip.png"  >
+        <figcaption> "A charcoal drawing of a bowl of fruit"  </figcaption>
+      </figure>
+      </div>
+
+      <div class="gallery">
+        <figure class="tiny">
+          <img src="images/flip2.png"  >
+          <figcaption> "An oil painting of a desert with cacti" </figcaption>
+        </figure>
+        <figure class="tiny">
+          <img src="images/flip2flip.png"  >
+          <figcaption> "An oil painting of a house on stilts by the water"  </figcaption>
+        </figure>
+        </div>
+
+<h3 style="text-align:center;">1.9: Hybrid Images </h3>
+  <p style="text-align:center;"> I again iteratively denoise an image (CFG) with two prompts. I get a noise estimate of the image for each prompt separately.
+    Then, I apply a low-pass filter to the first noise estimate and a high pass filter to the second. The result is a hybrid image with one prompt dominating the low frequencies and the other prompt dominating the high frequencies.
+    </p>
+  
+    <div class="gallery">
+      <figure class="small">
+        <img src="images/hybrid_eq.png"  >
+      </figure>
+    </div>
+  
+    <details>
+      <summary>Click to see an implementation of the hybrid images function.</summary>
+      <pre><code class="language-python">
+    def low_high_avg(low_tensor, high_tensor, kernel_size=33, sigma=2):
+        low_pass1 = gaussian_blur(low_tensor, kernel_size, sigma)
+        low_pass2 = gaussian_blur(high_tensor, kernel_size, sigma)
+        high_pass = high_tensor - low_pass2
+        return low_pass1 + high_pass
+
+    def make_hybrids(image, i_start, prompt_embed1, prompt_embed2, uncond_prompt_embeds, timesteps, scale=7, display=True):
+
+        im = torch.randn_like(image).to(device).half()
+        prompt_embed1 = prompt_embed1.to('cuda')
+        prompt_embed2 = prompt_embed2.to('cuda')
+        uncond_prompt_embeds = uncond_prompt_embeds.to('cuda')
+
+        with torch.no_grad():
+          for i in range(i_start, len(timesteps) - 1):
+            # Get timesteps
+            t = timesteps[i]
+            prev_t = timesteps[i+1]
+            alpha_bar_t = alphas_cumprod[t]
+            alpha_prime_t = alphas_cumprod[prev_t]
+            alpha = alpha_bar_t / alpha_prime_t
+            beta = (1-alpha)
+
+            # same get_noise_est function as previous section
+            cfg_noise1, pred_variance1 = get_noise_est(im, t, scale, prompt_embed1, uncond_prompt_embeds)
+            cfg_noise2, pred_variance2 = get_noise_est(im, t, scale, prompt_embed2, uncond_prompt_embeds)
+
+            avg_noise = low_high_avg(cfg_noise1, cfg_noise2, kernel_size=33, sigma=2)
+            avg_variance = (pred_variance1 + pred_variance2) / 2
+
+            # Get `pred_prev_image`, the next less noisy image.
+            x0 = (im - torch.sqrt(1-alpha_bar_t) * avg_noise) / torch.sqrt(alpha_bar_t)
+            pred_prev_image = (torch.sqrt(alpha_prime_t) * beta / (1-alpha_bar_t)) * x0 + (torch.sqrt(alpha) * (1-alpha_prime_t) / (1-alpha_bar_t)) * im
+            pred_prev_image = add_variance(avg_variance, t, pred_prev_image)
+
+            im = pred_prev_image
+          clean = im.cpu().detach().numpy()
+        return clean
+      </code></pre>
+    </details>
+  
+    <p style="text-align:center;">Visual Anagrams: vertical flip</p>
+    
+    <div class="gallery">
+    <figure class="tiny">
+      <img src="images/hybrid1.png"  >
+      <figcaption> "A charcoal drawing of a bowl of fruit" <br> + "an oil painting of a desert with cacti" </figcaption>
+    </figure>
+    <figure class="tiny">
+      <img src="images/hybrid2.png"  >
+      <figcaption> "A strawberry" <br> + "potted succulents" </figcaption>
+    </figure>
+    </div>
+
+
+  <h2 style="text-align:center;color:#8061DF"=>Bells and Whistles </h2>
+
+  <p> not implemented yet.</p>
+
+      
+<br><br>
+  <p style="text-align:center;"> Hey, thanks for reaching the bottom :) </p>
+
+</div>
+
+
+</body>
+</html>
